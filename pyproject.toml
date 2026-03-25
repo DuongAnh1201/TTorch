@@ -1,0 +1,33 @@
+[build-system]
+requires = [
+    "scikit-build-core>=0.8",
+    "pybind11>=2.11",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "ttorch"
+version = "0.1.0"
+description = "A lightweight C++ tensor and autograd library with Python bindings"
+readme = "README.md"
+authors = [
+    { name = "TomNguyen", email = "tomnguyen6766@gmail.com" },
+]
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+keywords = ["tensor", "autograd", "deep learning", "C++", "pybind11"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[tool.scikit-build]
+minimum-version = "0.8"
+# Directory containing CMakeLists.txt
+cmake.source-dir = "."
+
+[tool.scikit-build.cmake.define]
+CMAKE_BUILD_TYPE = "Release"
