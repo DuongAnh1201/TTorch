@@ -39,3 +39,33 @@
 
 # debug information files
 *.dwo
+
+# CMake build artifacts
+build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+CMakeUserPresets.json
+
+# Debug symbols (macOS)
+*.dSYM/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Python extension modules (compiled bindings)
+*.cpython-*.so
+
+# Python packaging / virtual envs
+dist/
+*.egg-info/
+.venv/
+venv/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
