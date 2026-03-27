@@ -123,12 +123,19 @@ class Tensor
             return tensor;
         }
         
-        vector<double> add(Tensor m, Tensor n)
-        {
+        Tensor<double> add(Tensor m, Tensor n)
+        {   
+            Tensor k;
             if (m.shape != n.shape)
             {
-                
+                throw invalid_argument("Invalid Argument");
             }
+            else{
+                for (int i=0; i<=tensor.size(); i++)
+                {
+                    k[i] = m[i]+n[i];
+                }
+                return k;
         }
         
         
