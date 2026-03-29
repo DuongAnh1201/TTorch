@@ -123,6 +123,7 @@ class Tensor
             return tensor;
         }
         
+        //Add two tensor
         Tensor<double> add(Tensor m, Tensor n)
         {   
             Tensor k;
@@ -137,6 +138,8 @@ class Tensor
                 }
                 return k;
         }
+        
+        
         
         
 };
