@@ -17,10 +17,25 @@ class Tensor
                 total *= d;
             }
             tensor.resize(total);
-            for (int a = 0; a<tensor.size(); a++)
+            for (int a = 0; a<(int)tensor.size(); a++)
             {
                 tensor[a] = 0.0;
-            } 
+            }
+        };
+
+        Tensor(const vector<int>& dims)
+        {
+            shape = dims;
+            int total = 1;
+            for (int d: shape)
+            {
+                total *= d;
+            }
+            tensor.resize(total);
+            for (int a = 0; a<(int)tensor.size(); a++)
+            {
+                tensor[a] = 0.0;
+            }
         };
         vector<int> dims()
         {
@@ -73,24 +88,57 @@ class Tensor
             return shape;
         };
         
-        int view(vector<int> a)
+        //Reshape a tensor without copying data - returns a new tensor with a different shape
+        Tensor view(vector<int> newshape)
         {
-            if (a.size()<shape.size() || a.size()>shape.size())
+            int total_new = 1;
+            for (int i = 0; i<newshape.size(); i++)
             {
-                throw invalid_argument("Invalid Argument");
-            };
-            for (int i=0; i<shape.size(); i++)
-            {
-                if(a[i]>tensor[i])
-                {
-                    throw invalid_argument("Invalid Argument");
-                };
-                
-                
+                total_new *= newshape[i];
             }
-                
+    
+            if (tensor.size()!= total_new)
+            {
+                throw invalid_argument("Invalid newshape");
+            }
+            vector<int> d = reshape(newshape);
+            printRecursive(tensor, newshape);
+            return d;
             
         };
+        //slicing helper
+        vector<double> slice(vector<double>& v, int start, int end)
+            {
+                return vector<double>(v.begin() + start, v.begin() + end);
+            }
+        void printRecursive(vector<double> data, vector<int> sh)
+            {
+                if (sh.size()==1)
+                {
+                    cout<< "[";
+                    for (int i=0; i<sh[0];i++)
+                    {
+                        cout<<data[i];
+                        if (i<sh[0]-1) cout<<",";
+                        
+                    }
+                    cout<<"]";
+                }
+                else
+                {
+                    int chunk = data.size() / sh[0];
+                    cout<< "[";
+                    vector<int> rest_shape(sh.begin()+1, sh.end());
+                    for(int i=0; i<sh[0]; i++)
+                    {
+                        vector<double> chunk_data = slice(data, i*chunk, i*chunk+chunk);
+                        printRecursive(chunk_data, rest_shape);
+                        if(i<sh[0]-1) cout<< "\n";
+                        
+                    }
+                    cout <<"]";
+                }
+            }
         
         //Matrix math
         //Matrix plus one int
@@ -124,9 +172,9 @@ class Tensor
         }
         
         //Add two tensor
-        Tensor<double> add(Tensor m, Tensor n)
+        vector<double> add(Tensor m, Tensor n)
         {   
-            Tensor k;
+            vector<double> k;
             if (m.shape != n.shape)
             {
                 throw invalid_argument("Invalid Argument");
@@ -134,11 +182,12 @@ class Tensor
             else{
                 for (int i=0; i<=tensor.size(); i++)
                 {
-                    k[i] = m[i]+n[i];
+                    k[i] = m.tensor[i]+n.tensor[i];
                 }
                 return k;
         }
         
+                        
         
         
         
@@ -149,8 +198,6 @@ class Tensor
 int main()
 {
     Tensor t({2, 3});
-    vector s = t.dims();
-    vector<double> m = t.zeros();
+    t.view({3,2});
     
-    return 0;
 }
