@@ -187,6 +187,36 @@ class Tensor
                 return k;
         }
         
+        
+        //transpose
+        //suppose we are using 2D matrix.
+        vector<double> transpose(Tensor a)
+        {
+            if (a.shape.size() !=2)
+            {
+                throw invalid_argument("Only accept 2D matrix");
+            }
+            else
+            {
+                int rows = a.shape[0];
+                int cols = a.shape[1];
+                vector<double> result(rows*cols);
+                for (int r = 0; r< rows; r++)
+                {
+                    for (int c = 0; c< cols; c++)
+                    {
+                        result[c*rows + r] = a.tensor[r*cols+c]
+                    }
+                }
+                return result;
+            }
+            
+        }
+        //dot product
+        
+        //determinant
+        
+        
                         
         
         
