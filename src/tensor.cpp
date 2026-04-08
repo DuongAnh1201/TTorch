@@ -64,7 +64,7 @@ class Tensor
             return tensor;
         };
         
-        vector<double> tensor(int j)
+        vector<double> custom(int j)
         {
             for (int i=0; i<tensor.size(); i++)
             {
@@ -88,6 +88,12 @@ class Tensor
             return shape;
         };
         
+        void print()
+        {
+            printRecursive(tensor, shape);
+            cout << endl;
+        }
+        
         //Reshape a tensor without copying data - returns a new tensor with a different shape
         Tensor view(vector<int> newshape)
         {
@@ -106,6 +112,24 @@ class Tensor
             return d;
             
         };
+        
+        //Create Tensor with custom value
+        vector<double> value(vector<double> a)
+        {
+            if (a.size() != tensor.size())
+            {
+                throw invalid_argument("The size of the argument is not compatiple");
+            }
+            else
+            {
+                for (int i=0; i<tensor.size(); i++)
+                {
+                    tensor[i] = a[i];
+                }
+            }
+            return tensor;
+        }
+        
         //slicing helper
         vector<double> slice(vector<double>& v, int start, int end)
             {
@@ -185,34 +209,64 @@ class Tensor
                     k[i] = m.tensor[i]+n.tensor[i];
                 }
                 return k;
-        }
+            }
+        };
         
         
         //transpose
         //suppose we are using 2D matrix.
-        vector<double> transpose(Tensor a)
+        Tensor transpose()
         {
-            if (a.shape.size() !=2)
+            if (shape.size() !=2)
             {
                 throw invalid_argument("Only accept 2D matrix");
             }
             else
             {
-                int rows = a.shape[0];
-                int cols = a.shape[1];
-                vector<double> result(rows*cols);
+                int rows = shape[0];
+                int cols = shape[1];
+                Tensor result({rows,cols});
                 for (int r = 0; r< rows; r++)
                 {
                     for (int c = 0; c< cols; c++)
                     {
-                        result[c*rows + r] = a.tensor[r*cols+c]
+                        result.tensor[c*rows + r] = tensor[r*cols+c];
                     }
                 }
                 return result;
-            }
-            
+            }  
         }
         //dot product
+        //Suppose that 2x2D matrix only
+        Tensor dot(Tensor b)
+        {
+            int row_a = shape[0];
+            int col_a = shape[1];
+            int row_b = b.shape[0];
+            int col_b = b.shape[1];
+            if (col_a!=row_b)
+            {
+                throw invalid_argument("Two tensors are not compatiple to do the dot product");
+            }
+            else
+            {
+                Tensor result({row_a,col_b});
+                for(int i=0; i<row_a; i++)
+                {
+                    for(int j=0; j<col_b; j++)
+                    {
+                        for(int k=0; k<col_a; k++)
+                        {
+                            result.tensor[i*col_b + j] += tensor[col_a*i+k]*b.tensor[col_b*k+j]; 
+                        }
+                    }
+                }
+                return result;
+                
+            }
+        }
+    
+        
         
         //determinant
         
@@ -225,9 +279,13 @@ class Tensor
 
 
 
+
 int main()
 {
-    Tensor t({2, 3});
-    t.view({3,2});
-    
+    Tensor m({2, 3});
+    Tensor n({3,2});
+    m.value({1,2,3,4,5,6});
+    n.value({1,4,2,5,3,6});
+    Tensor k = m.dot(n);
+    k.print();
 }
