@@ -266,7 +266,20 @@ class Tensor
             }
         }
     
-        
+        //Multiply two tensor
+        Tensor multiply(Tensor b){
+            if (shape != b.shape()){
+                throw invalid_argument("Two tensors are not compatible to multiply");
+            }
+            else{
+                Tensor result({shape[0], shape[1]});
+                for (int i=0; i<tensor.size(); i++){
+                    result.tensor[i] = tensor[i] * b.tensor[i];
+                }
+                return result;
+
+                }
+                }
         
         //determinant
         
