@@ -196,17 +196,18 @@ class Tensor
         }
         
         //Add two tensor
-        vector<double> add(Tensor m, Tensor n)
+        Tensor add(Tensor n)
         {   
             vector<double> k;
-            if (m.shape != n.shape)
+            if (shape != n.shape())
             {
-                throw invalid_argument("Invalid Argument");
+                throw invalid_argument("Two tensors are not compatible to add");
             }
             else{
+                Tensor result(shape);
                 for (int i=0; i<=tensor.size(); i++)
                 {
-                    k[i] = m.tensor[i]+n.tensor[i];
+                    result.tensor[i] = tensor[i]+n.tensor[i];
                 }
                 return k;
             }
