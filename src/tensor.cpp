@@ -163,8 +163,21 @@ class Tensor
                     cout <<"]";
                 }
             }
-        
+        //at method
+        double at(vector<int> index){
+            if(index.size() != shape.size()){
+                throw invalid_argument("The index is not compatible to the tensor");
+            }
+            if(index.size() == 1){
+                return tensor[index[0]];
+            }
+            else{
+                return tensor[index[0]*shape[1]+index[1]];
+            }
+        }
         //Matrix math
+
+       
         //Matrix plus one int
         vector<double> add_int(double i)
         {
