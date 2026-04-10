@@ -212,7 +212,7 @@ class Tensor
         Tensor add(Tensor n)
         {   
             vector<double> k;
-            if (shape[0] != n.shape[0] && shape[1]!= n.shape[1])
+            if (shape != n.shape)
             {
                 throw invalid_argument("Two tensors are not compatible to add");
             }
@@ -282,11 +282,11 @@ class Tensor
     
         //Multiply two tensor
         Tensor multiply(Tensor b){
-            if (shape != b.shape()){
+            if (shape != b.shape){
                 throw invalid_argument("Two tensors are not compatible to multiply");
             }
             else{
-                Tensor result({shape[0], shape[1]});
+                Tensor result(shape);
                 for (int i=0; i<tensor.size(); i++){
                     result.tensor[i] = tensor[i] * b.tensor[i];
                 }
