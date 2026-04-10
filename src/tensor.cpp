@@ -1,7 +1,7 @@
 #include<iostream>
-#include<Eigen/Dense>
+//#include<Eigen/Dense>
 using namespace std;
-using namespace Eigen;
+// using namespace Eigen;
 
 class Tensor
 {
@@ -73,7 +73,7 @@ class Tensor
             return tensor;
         };
         //Matrix manipulation
-        vector<int> reshape(vector<int> newshape)
+        Tensor reshape(vector<int> newshape)
         {
             int total = 1;
             for (int d: newshape)
@@ -84,8 +84,9 @@ class Tensor
             {
                 throw invalid_argument("Invalid Reshape");
             };
-            shape = newshape;
-            return shape;
+            Tensor new_tensor(newshape);
+            new_tensor.tensor = tensor; 
+            return new_tensor;
         };
         
         void print()
@@ -107,10 +108,9 @@ class Tensor
             {
                 throw invalid_argument("Invalid newshape");
             }
-            vector<int> d = reshape(newshape);
-            printRecursive(tensor, newshape);
-            return d;
-            
+            Tensor d = reshape(newshape);
+            printRecursive(d.tensor, newshape);  
+            return d;  
         };
         
         //Create Tensor with custom value
@@ -212,7 +212,7 @@ class Tensor
         Tensor add(Tensor n)
         {   
             vector<double> k;
-            if (shape != n.shape())
+            if (shape[0] != n.shape[0] && shape[1]!= n.shape[1])
             {
                 throw invalid_argument("Two tensors are not compatible to add");
             }
@@ -222,7 +222,7 @@ class Tensor
                 {
                     result.tensor[i] = tensor[i]+n.tensor[i];
                 }
-                return k;
+                return result;
             }
         };
         
@@ -315,4 +315,7 @@ int main()
     n.value({1,4,2,5,3,6});
     Tensor k = m.dot(n);
     k.print();
+    k.view({1,4});
+    Tensor q = k.reshape({1,4});
+    q.print();
 }
