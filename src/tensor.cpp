@@ -5,136 +5,14 @@ using namespace std;
 
 class Tensor
 {
-    public:
-        vector<int> shape;
-        vector<double> tensor;
-        Tensor(const initializer_list<int>& dims)
-        {
-            shape = dims;
-            int total = 1;
-            for (int d: shape)
-            {
-                total *= d;
-            }
-            tensor.resize(total);
-            for (int a = 0; a<(int)tensor.size(); a++)
-            {
-                tensor[a] = 0.0;
-            }
-        };
-
-        Tensor(const vector<int>& dims)
-        {
-            shape = dims;
-            int total = 1;
-            for (int d: shape)
-            {
-                total *= d;
-            }
-            tensor.resize(total);
-            for (int a = 0; a<(int)tensor.size(); a++)
-            {
-                tensor[a] = 0.0;
-            }
-        };
-        vector<int> dims()
-        {
-            vector<int> A(shape.size());
-            for (int i=0; i<shape.size(); i++)
-            {
-                A[i] = shape[i];
-            };
-            return A;
-        };
-        
-        vector<double> zeros()
-        {
-           for (int i=0; i<tensor.size(); i++)
-           {
-               tensor[i] = 0.0;
-           };
-           return tensor;
-        }
-        vector<double> ones()
-        {   
-            for (int i=0; i<tensor.size(); i++)
-            {
-                tensor[i] = 1.0;
-            };
-            return tensor;
-        };
-        
-        vector<double> custom(int j)
-        {
-            for (int i=0; i<tensor.size(); i++)
-            {
-                tensor[i] = j;
-            };
-            return tensor;
-        };
-        //Matrix manipulation
-        Tensor reshape(vector<int> newshape)
+    private:
+        Tensor() {}
+        int numel()
         {
             int total = 1;
-            for (int d: newshape)
-            {
-                total*= d;
-            }
-            if (total != tensor.size())
-            {
-                throw invalid_argument("Invalid Reshape");
-            };
-            Tensor new_tensor(newshape);
-            new_tensor.tensor = tensor; 
-            return new_tensor;
-        };
-        
-        void print()
-        {
-            printRecursive(tensor, shape);
-            cout << endl;
+            for(int d: shape) total *=d;
+            return total;
         }
-        
-        //Reshape a tensor without copying data - returns a new tensor with a different shape
-        Tensor view(vector<int> newshape)
-        {
-            int total_new = 1;
-            for (int i = 0; i<newshape.size(); i++)
-            {
-                total_new *= newshape[i];
-            }
-    
-            if (tensor.size()!= total_new)
-            {
-                throw invalid_argument("Invalid newshape");
-            }
-            Tensor d = reshape(newshape);
-            printRecursive(d.tensor, newshape);  
-            return d;  
-        };
-        
-        //Create Tensor with custom value
-        vector<double> value(vector<double> a)
-        {
-            if (a.size() != tensor.size())
-            {
-                throw invalid_argument("The size of the argument is not compatiple");
-            }
-            else
-            {
-                for (int i=0; i<tensor.size(); i++)
-                {
-                    tensor[i] = a[i];
-                }
-            }
-            return tensor;
-        }
-        
-        //slicing helper
-        vector<double> slice(vector<double>& v, int start, int end)
-            {
-                return vector<double>(v.begin() + start, v.begin() + end);
-            }
         void printRecursive(vector<double> data, vector<int> sh)
             {
                 if (sh.size()==1)
@@ -163,49 +41,207 @@ class Tensor
                     cout <<"]";
                 }
             }
+    public:
+        vector<int> shape;
+        vector<double> data;
+        Tensor(const initializer_list<int>& dims)
+        {
+            shape = dims;
+            int total = 1;
+            for (int d: shape)
+            {
+                total *= d;
+            }
+            data.resize(total);
+            for (int a = 0; a<(int)data.size(); a++)
+            {
+                data[a] = 0.0;
+            }
+        };
+
+        Tensor(const vector<int>& dims)
+        {
+            shape = dims;
+            int total = 1;
+            for (int d: shape)
+            {
+                total *= d;
+            }
+            data.resize(total);
+            for (int a = 0; a<(int)data.size(); a++)
+            {
+                data[a] = 0.0;
+            }
+        };
+        
+        // Tensor const tensor(vector<double> a)
+        // {   
+        //     if (data.size()!=a.size())
+        //     {
+        //         throw invalid_argument("the argument is not compatible with the initial tensor");
+        //     }
+        //     Tensor result(shape);
+        //     for (int i = 0; i<a.size(); i++)
+        //     {
+        //         result.data[i] = a[i];
+        //     }
+        //     return result;
+        // }
+        vector<int> dims()
+        {
+            return shape;
+        };
+        
+        static Tensor zeros(initializer_list<int> dims)
+        {
+            Tensor t;
+            t.shape =dims;
+            
+           t.data.assign(t.numel(), 0.0);
+           return t;
+        }
+        static Tensor ones(initializer_list<int> dims)
+        {   
+            Tensor t;
+            t.shape = dims;
+            
+            t.data.assign(t.numel(), 1.0);
+            return t;
+        };
+        
+        static Tensor custom(initializer_list<int>dims,double j)
+        {
+            Tensor t;
+            t.shape = dims;
+            t.data.assign(t.numel(), j);
+            return t;
+        };
+        
+        static Tensor form(initializer_list<int> dims, vector<double> data)
+        {
+            Tensor t = Tensor::zeros(dims);
+            if (data.size() != t.data.size())
+            {
+                throw invalid_argument("data's size is not compatible");
+            }
+            t.data = data;
+            return t;
+        }
+
+        static Tensor form(const vector<int>& dims, vector<double> data)
+        {
+            Tensor t(dims);
+            if (data.size() != t.data.size())
+            {
+                throw invalid_argument("data's size is not compatible");
+            }
+            t.data = data;
+            return t;
+        }
+        //Matrix manipulation
+        Tensor reshape(vector<int> newshape)
+        {
+            int total = 1;
+            for (int d: newshape)
+            {
+                total*= d;
+            }
+            if (total != data.size())
+            {
+                throw invalid_argument("Invalid Reshape");
+            };
+            Tensor new_tensor(newshape);
+            new_tensor.data = data; 
+            return new_tensor;
+        };
+        
+        void print()
+        {
+            printRecursive(data, shape);
+            cout << endl;
+        }
+        
+        //Reshape a tensor without copying data - returns a new tensor with a different shape
+        Tensor view(vector<int> newshape)
+        {
+            int total_new = 1;
+            for (int i = 0; i<newshape.size(); i++)
+            {
+                total_new *= newshape[i];
+            }
+    
+            if (data.size()!= total_new)
+            {
+                throw invalid_argument("Invalid newshape");
+            }
+            Tensor d = reshape(newshape);
+            printRecursive(d.data, newshape);  
+            return d;  
+        };
+        
+        //Create Tensor with custom value
+        vector<double> value(vector<double> a)
+        {
+            if (a.size() != data.size())
+            {
+                throw invalid_argument("The size of the argument is not compatiple");
+            }
+            else
+            {
+                for (int i=0; i<data.size(); i++)
+                {
+                    data[i] = a[i];
+                }
+            }
+            return data;
+        }
+        
+        //slicing helper
+        vector<double> slice(vector<double>& v, int start, int end)
+            {
+                return vector<double>(v.begin() + start, v.begin() + end);
+            }
+        
         //at method
         double at(vector<int> index){
             if(index.size() != shape.size()){
                 throw invalid_argument("The index is not compatible to the tensor");
             }
             if(index.size() == 1){
-                return tensor[index[0]];
+                return data[index[0]];
             }
             else{
-                return tensor[index[0]*shape[1]+index[1]];
+                return data[index[0]*shape[1]+index[1]];
             }
         }
         //Matrix math
 
        
         //Matrix plus one int
-        vector<double> add_int(double i)
+
+        Tensor add_int(double i)
         {
-            for (int j =0; j<tensor.size(); j++)
+            Tensor t;
+            t.shape = shape;
+            t.data = data;
+            for (int j=0; j<(int)t.data.size(); j++)
             {
-                tensor[j] += i;
+                t.data[j] += i;
             };
-            return tensor;
-        }
-        
-        //Matrix subtract one int
-        vector<double> sub_int(double i)
-        {
-            for (int j=0; j<tensor.size(); j++)
-            {
-                tensor[j] -= i;
-            };
-            return tensor;
+            return t;
         }
         
         //Matrix with one scaler
-        vector<double> scale_int(double i)
+        Tensor scale_int(double i)
         {
-            for (int j=0; j<tensor.size(); j++)
+            Tensor t;
+            t.shape = shape;
+            t.data = data;
+            for (int j=0; j<(int)t.data.size(); j++)
             {
-                tensor[j] *= i;
+                t.data[j] *= i;
             };
-            return tensor;
+            return t;
         }
         
         //Add two tensor
@@ -217,9 +253,9 @@ class Tensor
             }
             else{
                 Tensor result(shape);
-                for (int i=0; i<tensor.size(); i++)
+                for (int i=0; i<(int)result.data.size(); i++)
                 {
-                    result.tensor[i] = tensor[i]+n.tensor[i];
+                    result.data[i] = data[i]+n.data[i];
                 }
                 return result;
             }
@@ -238,12 +274,12 @@ class Tensor
             {
                 int rows = shape[0];
                 int cols = shape[1];
-                Tensor result({rows,cols});
+                Tensor result({cols,rows});
                 for (int r = 0; r< rows; r++)
                 {
                     for (int c = 0; c< cols; c++)
                     {
-                        result.tensor[c*rows + r] = tensor[r*cols+c];
+                        result.data[c*rows + r] = data[r*cols+c];
                     }
                 }
                 return result;
@@ -253,29 +289,35 @@ class Tensor
         //Suppose that 2x2D matrix only
         Tensor dot(Tensor b)
         {
-            int row_a = shape[0];
-            int col_a = shape[1];
-            int row_b = b.shape[0];
-            int col_b = b.shape[1];
-            if (col_a!=row_b)
+            if (shape.size() !=2)
             {
-                throw invalid_argument("Two tensors are not compatiple to do the dot product");
+                throw invalid_argument("Only accept 2D matrix");
             }
             else
             {
-                Tensor result({row_a,col_b});
-                for(int i=0; i<row_a; i++)
+                int row_a = shape[0];
+                int col_a = shape[1];
+                int row_b = b.shape[0];
+                int col_b = b.shape[1];
+                if (col_a!=row_b)
                 {
-                    for(int j=0; j<col_b; j++)
+                    throw invalid_argument("Two tensors are not compatiple to do the dot product");
+                }
+                else
+                {
+                    Tensor result({row_a,col_b});
+                    for(int i=0; i<row_a; i++)
                     {
-                        for(int k=0; k<col_a; k++)
+                        for(int j=0; j<col_b; j++)
                         {
-                            result.tensor[i*col_b + j] += tensor[col_a*i+k]*b.tensor[col_b*k+j]; 
+                            for(int k=0; k<col_a; k++)
+                            {
+                                result.data[i*col_b + j] += data[col_a*i+k]*b.data[col_b*k+j]; 
+                            }
                         }
                     }
+                    return result;
                 }
-                return result;
-                
             }
         }
     
@@ -286,8 +328,8 @@ class Tensor
             }
             else{
                 Tensor result(shape);
-                for (int i=0; i<tensor.size(); i++){
-                    result.tensor[i] = tensor[i] * b.tensor[i];
+                for (int i=0; i<data.size(); i++){
+                    result.data[i] = data[i] * b.data[i];
                 }
                 return result;
 
@@ -305,10 +347,12 @@ class Tensor
                 total *=d;
             }
             Tensor result({total});
-            result.tensor = tensor; //transfer the data
+            result.data = data; //transfer the data
             return result;
         }
         //squeeze
+        
+        
         //sum
         //mean
         //max
