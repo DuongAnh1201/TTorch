@@ -211,14 +211,13 @@ class Tensor
         //Add two tensor
         Tensor add(Tensor n)
         {   
-            vector<double> k;
             if (shape != n.shape)
             {
                 throw invalid_argument("Two tensors are not compatible to add");
             }
             else{
                 Tensor result(shape);
-                for (int i=0; i<=tensor.size(); i++)
+                for (int i=0; i<tensor.size(); i++)
                 {
                     result.tensor[i] = tensor[i]+n.tensor[i];
                 }
@@ -311,11 +310,15 @@ int main()
 {
     Tensor m({2, 3});
     Tensor n({3,2});
+    Tensor q({2, 3});
     m.value({1,2,3,4,5,6});
     n.value({1,4,2,5,3,6});
-    Tensor k = m.dot(n);
+    q.value({1,2,3,4,5,6});
+    Tensor k= m.add(q);
     k.print();
-    k.view({1,4});
-    Tensor q = k.reshape({1,4});
-    q.print();
+    // Tensor k = m.dot(n);
+    // k.print();
+    // k.view({1,4});
+    // Tensor q = k.reshape({1,4});
+    // q.print();
 }
