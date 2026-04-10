@@ -296,7 +296,23 @@ class Tensor
         
         //determinant
         
-        
+        //flatten
+        Tensor flatten()
+        {
+            int total = 1;
+            for(int d: shape)
+            {
+                total *=d;
+            }
+            Tensor result({total});
+            result.tensor = tensor; //transfer the data
+            return result;
+        }
+        //squeeze
+        //sum
+        //mean
+        //max
+        //sum
                         
         
         
@@ -316,6 +332,8 @@ int main()
     q.value({1,2,3,4,5,6});
     Tensor k= m.add(q);
     k.print();
+    Tensor j = k.flatten();
+    j.print();
     // Tensor k = m.dot(n);
     // k.print();
     // k.view({1,4});
