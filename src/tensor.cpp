@@ -289,12 +289,26 @@ class Tensor
         //Suppose that 2x2D matrix only
         Tensor dot(Tensor b)
         {
-            if (shape.size() !=2)
+            if (shape.size() !=2 && shape.size() != 1)
             {
-                throw invalid_argument("Only accept 2D matrix");
+                throw invalid_argument("Only accept 1D-2D matrix");
+            }
+            if (b.shape.size() != 2 && b.shape.size() != 1)
+            {
+                throw invalid_argument("Only accept 1D-2D matrix");
             }
             else
             {
+                if (shape.size() == 1)
+                {
+                    int n = (int)data.size();
+                    shape = vector<int> {n,1};
+                }
+                if (b.shape.size() == 1)
+                {
+                    int m = (int) data.size();
+                    b.shape = vector<int> {m,1};
+                }
                 int row_a = shape[0];
                 int col_a = shape[1];
                 int row_b = b.shape[0];
