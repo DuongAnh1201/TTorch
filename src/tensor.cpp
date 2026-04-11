@@ -285,6 +285,28 @@ class Tensor
                 return result;
             }  
         }
+        Tensor T()
+        {
+            if (shape.size()!=2)
+            {
+                throw invalid_argument("Only accept 2D matrix");
+            }
+            else
+            {
+                int rows = shape[0];
+                int cols = shape[1];
+                Tensor result({cols, rows});
+                for (int r = 0; r< rows; r++)
+                {
+                    for (int c=0; c< rows; c++)
+                    {
+                        result.data[c*rows+r] = data[r*cols+c];
+                    }
+                }
+                return result;
+                
+            }
+        }
         //dot product
         //Suppose that 2x2D matrix only
         Tensor dot(Tensor b)
@@ -386,12 +408,15 @@ int main()
     Tensor n({3,2});
     Tensor q({2, 3});
     m.value({1,2,3,4,5,6});
+    m.print();
     n.value({1,4,2,5,3,6});
     q.value({1,2,3,4,5,6});
     Tensor k= m.add(q);
     k.print();
     Tensor j = k.flatten();
     j.print();
+    Tensor a = m.transpose();
+    a.print();
     // Tensor k = m.dot(n);
     // k.print();
     // k.view({1,4});
