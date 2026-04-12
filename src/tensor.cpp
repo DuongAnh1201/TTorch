@@ -462,11 +462,50 @@ class Tensor
         
 
         //mean
+        Tensor mean(int axis = 0)
+        {
+            if(shape.size() == 1)
+            {
+                Tensor result({1});
+                Tensor m = sum();
+                int num = numel();
+                result.data[0] = m.data[0]/num;
+                return result;
+            }
+            else
+            {
+                if (shape.size() == 2)
+                {
+                
+                    int rows = shape[0];
+                    int cols = shape[1];
+                    if(axis == 0){ 
+                        Tensor m = sum();
+                        Tensor result = Tensor::zeros({rows});
+                    
+                        for (int r = 0; r<rows; r++)
+                        {
+                            result.data[r] = m.data[r]/cols;
+                        }
+                        return result;
+                    }
+                    if(axis == 1)
+                    {
+                        Tensor m = sum(1);
+                        Tensor result = Tensor::zeros({cols});
+                        for(int c = 0; c<cols; c++)
+                        {
+                            result.data[c] = m.data[c]/rows;
+                        }
+                        return result;
+                    }
+                }
+                
+            }
+        }
         //max
-        //sum
+        
                         
-        
-        
         
 };
 
