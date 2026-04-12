@@ -100,15 +100,34 @@ pip install dist/*.whl
 
 # Quick Example
 
-```python id="example01"
-import my_cpp_lib
+```cpp
+#include "tensor.h"
 
-result = my_cpp_lib.add(2, 3)
+// Create tensors
+Tensor a = Tensor::form({2, 3}, {1, 2, 3, 4, 5, 6});
+Tensor b = Tensor::ones({2, 3});
 
-print(result)
+// Element-wise operations
+Tensor c = a.add(b);        // element-wise addition
+Tensor d = a.multiply(b);   // element-wise multiplication
+Tensor e = a.add_int(10.0); // broadcast scalar addition
+Tensor f = a.scale_int(2.0); // broadcast scalar multiply
+
+// Matrix operations
+Tensor t  = a.transpose();  // or a.T()
+Tensor ab = a.dot(a.T());   // matrix multiplication → (2,2)
+
+// Reductions
+Tensor s = a.sum(0);   // sum along axis 0 → shape (2,)
+Tensor m = a.mean(1);  // mean along axis 1 → shape (3,)
+
+// Shape manipulation
+Tensor flat = a.flatten();          // → shape (6,)
+Tensor r    = a.reshape({3, 2});    // → shape (3,2)
+
+// Print
+a.print();
 ```
-
-Future versions will include tensor operations and automatic differentiation.
 
 ---
 
@@ -149,12 +168,55 @@ CPU / Future GPU Kernels
 
 ---
 
+# Tensor API
+
+### Static Constructors
+
+| Method | Description |
+|---|---|
+| `Tensor::zeros({rows, cols})` | Tensor filled with 0.0 |
+| `Tensor::ones({rows, cols})` | Tensor filled with 1.0 |
+| `Tensor::custom({rows, cols}, val)` | Tensor filled with a custom scalar |
+| `Tensor::form({rows, cols}, data)` | Tensor from a `vector<double>` |
+
+### Shape & Access
+
+| Method | Description |
+|---|---|
+| `dims()` | Returns shape as `vector<int>` |
+| `at({i, j})` | Element access by index |
+| `value(data)` | Set tensor data from `vector<double>` |
+| `reshape(newshape)` | Returns reshaped tensor (same total elements) |
+| `view(newshape)` | Alias for reshape, also prints the result |
+| `flatten()` | Returns 1D tensor |
+
+### Math Operations
+
+| Method | Description |
+|---|---|
+| `add(Tensor)` | Element-wise addition (same shape) |
+| `add_int(double)` | Add scalar to every element |
+| `scale_int(double)` | Multiply every element by scalar |
+| `multiply(Tensor)` | Element-wise multiplication (same shape) |
+| `dot(Tensor)` | Matrix multiplication — supports 1D and 2D tensors |
+| `transpose()` / `T()` | Transpose a 2D tensor |
+| `sum(axis)` | Sum along axis (1D or 2D) |
+| `mean(axis)` | Mean along axis (1D or 2D) |
+
+### Display
+
+| Method | Description |
+|---|---|
+| `print()` | Pretty-print the tensor with nested brackets |
+
+---
+
 # Roadmap
 
 Planned development milestones:
 
-* [ ] Core tensor data structure
-* [ ] Tensor math operations
+* [x] Core tensor data structure
+* [x] Tensor math operations (add, multiply, dot, transpose, sum, mean)
 * [ ] Autograd computation graph
 * [ ] Backpropagation engine
 * [ ] Neural network modules
