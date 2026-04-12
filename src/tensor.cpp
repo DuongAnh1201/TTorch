@@ -41,6 +41,24 @@ class Tensor
                     cout <<"]";
                 }
             }
+            
+        int ndim()
+        {
+            return shape.size();
+        }
+        
+        int size(int dim)
+        {
+            if (dim>= ndim())
+            {
+                throw invalid_argument("out of index");
+            }
+            else
+            {
+                return shape[dim];
+            }
+        }
+        
     public:
         vector<int> shape;
         vector<double> data;
@@ -386,10 +404,63 @@ class Tensor
             result.data = data; //transfer the data
             return result;
         }
-        //squeeze
-        
-        
         //sum
+        Tensor sum(int axis = 0)
+        {
+            if(shape.size() == 1)
+            {
+                if(axis == 0)
+                {
+                    Tensor result({1});
+                    result.data[0] = 0;
+                    for (int i: data)
+                    {
+                        result.data[0] += i;
+                        return result;
+                    }
+                }
+            }
+            else
+            {
+                if (shape.size() == 2)
+                {
+                    int rows = shape[0];
+                    int cols = shape[1];
+                    
+                    if(axis == 0)
+                    {
+                        Tensor result = Tensor::zeros({rows});
+                        for (int r = 0; r <rows; r++)
+                        {
+                            for (int c = 0; c<cols; c++)
+                            {
+                                result.data[r] += data[r*cols + c];
+                            }
+                        }
+                        return result;
+                    }
+                    else if(axis == 1)
+                    {
+                        Tensor result = Tensor::zeros({cols});
+                        for (int c = 0; c<cols; c++)
+                        {
+                            for (int r= 0; r<rows; r++)
+                            {
+                                result.data[c] += data[r*cols + c];
+                            }
+                        }
+                        return result;
+                    }
+                    else
+                    {
+                        throw invalid_argument("Can't compute for larger then 2D matrix");
+                    }
+                }
+            }
+        }
+        
+        
+
         //mean
         //max
         //sum
@@ -417,6 +488,8 @@ int main()
     j.print();
     Tensor a = m.transpose();
     a.print();
+    Tensor b = a.sum(1);
+    b.print();
     // Tensor k = m.dot(n);
     // k.print();
     // k.view({1,4});
