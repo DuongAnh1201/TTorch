@@ -1,5 +1,6 @@
 #include<iostream>
 //#include<Eigen/Dense>
+#include "tensor.h"
 using namespace std;
 // using namespace Eigen;
 
@@ -512,26 +513,26 @@ class Tensor
 
 
 
-int main()
-{
-    Tensor m({2, 3});
-    Tensor n({3,2});
-    Tensor q({2, 3});
-    m.value({1,2,3,4,5,6});
-    m.print();
-    n.value({1,4,2,5,3,6});
-    q.value({1,2,3,4,5,6});
-    Tensor k= m.add(q);
-    k.print();
-    Tensor j = k.flatten();
-    j.print();
-    Tensor a = m.transpose();
-    a.print();
-    Tensor b = a.sum(1);
-    b.print();
-    // Tensor k = m.dot(n);
-    // k.print();
-    // k.view({1,4});
-    // Tensor q = k.reshape({1,4});
-    // q.print();
-}
+// int main()
+// {
+//     Tensor m({2, 3});
+//     Tensor n({3,2});
+//     Tensor q({2, 3});
+//     m.value({1,2,3,4,5,6});
+//     m.print();
+//     n.value({1,4,2,5,3,6});
+//     q.value({1,2,3,4,5,6});
+//     Tensor k= m.add(q);
+//     k.print();
+//     Tensor j = k.flatten();
+//     j.print();
+//     Tensor a = m.transpose();
+//     a.print();
+//     Tensor b = a.sum(1);
+//     b.print();
+//     // Tensor k = m.dot(n);
+//     // k.print();
+//     // k.view({1,4});
+//     // Tensor q = k.reshape({1,4});
+//     // q.print();
+// }
