@@ -206,6 +206,7 @@ Tensor Tensor::scale_int(double i) {
         result.requires_grad = true;
         result.is_leaf = false;
         auto* fn = new ScaleBackward();
+        fn->scalar = i;  // save scalar — needed for grad_a = grad * scalar
         fn->inputs = {this};
         result.grad_fn = fn;
     }
@@ -232,11 +233,15 @@ Tensor Tensor::multiply(Tensor &b) {
     return result;
 }
 
-Tensor Tensor::dot(Tensor b) {
+Tensor Tensor::dot(Tensor &b) {
     if (shape.size() != 2 && shape.size() != 1)
         throw invalid_argument("only accept 1D or 2D tensors");
     if (b.shape.size() != 2 && b.shape.size() != 1)
         throw invalid_argument("only accept 1D or 2D tensors");
+
+    // save original tensors before shape mutation
+    Tensor saved_a = *this;
+    Tensor saved_b = b;
 
     if (shape.size() == 1) shape = vector<int>{(int)data.size(), 1};
     if (b.shape.size() == 1) b.shape = vector<int>{(int)b.data.size(), 1};
@@ -252,6 +257,16 @@ Tensor Tensor::dot(Tensor b) {
         for (int j = 0; j < col_b; j++)
             for (int k = 0; k < col_a; k++)
                 result.data[i * col_b + j] += data[col_a * i + k] * b.data[col_b * k + j];
+    if (requires_grad || b.requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new DotBackward();
+        fn->saved_a = saved_a;  // needed for grad_b = a.T @ grad
+        fn->saved_b = saved_b;  // needed for grad_a = grad @ b.T
+        fn->inputs = {this, &b};
+        result.grad_fn = fn;
+    }
     return result;
 }
 
