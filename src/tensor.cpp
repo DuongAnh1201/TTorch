@@ -1,4 +1,5 @@
 #include "tensor.h"
+#include "autograd.h"
 #include <iostream>
 using namespace std;
 
@@ -157,12 +158,21 @@ Tensor Tensor::flatten() {
 
 // ── Math ops ─────────────────────────────────────────────────
 
-Tensor Tensor::add(Tensor n) {
+Tensor Tensor::add(Tensor& n) {
     if (shape != n.shape)
         throw invalid_argument("shapes are not compatible for add");
     Tensor result(shape);
     for (int i = 0; i < (int)result.data.size(); i++)
         result.data[i] = data[i] + n.data[i];
+    //Build graph - attach GradFn
+    if (requires_grad || n.requires_grad) 
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new AddBackward();
+        fn->inputs = {this, &n}; //connect to inputs
+        result.grad_fn = fn;
+    }
     return result;
 }
 
