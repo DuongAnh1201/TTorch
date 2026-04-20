@@ -195,15 +195,24 @@ Tensor Tensor::add_int(double i) {
 }
 
 Tensor Tensor::scale_int(double i) {
-    Tensor t;
-    t.shape = shape;
-    t.data = data;
-    for (int j = 0; j < (int)t.data.size(); j++)
-        t.data[j] *= i;
-    return t;
+    Tensor result;
+    result.shape = shape;
+    result.data = data;
+    for (int j = 0; j < (int)result.data.size(); j++)
+        result.data[j] *= i;
+    //Build graph - attach GradFn
+    if(requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new ScaleBackward();
+        fn->inputs = {this};
+        result.grad_fn = fn;
+    }
+    return result;
 }
 
-Tensor Tensor::multiply(Tensor b) {
+Tensor Tensor::multiply(Tensor &b) {
     if (shape != b.shape)
         throw invalid_argument("shapes are not compatible for multiply");
     Tensor result(shape);
