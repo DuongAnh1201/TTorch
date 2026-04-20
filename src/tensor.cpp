@@ -218,6 +218,17 @@ Tensor Tensor::multiply(Tensor &b) {
     Tensor result(shape);
     for (int i = 0; i < (int)data.size(); i++)
         result.data[i] = data[i] * b.data[i];
+    // Build graph - attach GradFn
+    if (requires_grad || b.requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new MulBackward();
+        fn->saved_a = *this;  // save a — needed for grad_b = grad * a
+        fn->saved_b = b;      // save b — needed for grad_a = grad * b
+        fn->inputs = {this, &b};
+        result.grad_fn = fn;
+    }
     return result;
 }
 
