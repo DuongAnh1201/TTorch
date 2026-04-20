@@ -48,11 +48,11 @@ public:
     Tensor flatten();
 
     // --- Math ops ---
-    Tensor add(Tensor n);
+    Tensor add(Tensor& n);
     Tensor add_int(double i);
     Tensor scale_int(double i);
-    Tensor multiply(Tensor b);
-    Tensor dot(Tensor b);
+    Tensor multiply(Tensor& b);
+    Tensor dot(Tensor& b);
     Tensor transpose();
     Tensor T();
     Tensor sum(int axis = 0);
