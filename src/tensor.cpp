@@ -278,6 +278,14 @@ Tensor Tensor::transpose() {
     for (int r = 0; r < rows; r++)
         for (int c = 0; c < cols; c++)
             result.data[c * rows + r] = data[r * cols + c];
+    if (requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new TransposeBackward();
+        fn->inputs = {this};
+        result.grad_fn = fn;
+    }
     return result;
 }
 
