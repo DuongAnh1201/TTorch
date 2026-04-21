@@ -150,9 +150,19 @@ Tensor Tensor::view(vector<int> newshape) {
 
 Tensor Tensor::flatten() {
     int total = 1;
+    vector<int> original = shape;
     for (int d : shape) total *= d;
     Tensor result({total});
     result.data = data;
+    if (requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new FlattenBackward();
+        fn->original_shape = original;
+        fn->inputs = {this};
+        result.grad_fn = fn;
+    }
     return result;
 }
 
