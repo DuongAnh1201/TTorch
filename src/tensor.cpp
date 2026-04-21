@@ -336,28 +336,48 @@ Tensor Tensor::sum(int axis) {
 }
 
 Tensor Tensor::mean(int axis) {
+    vector<int> original = shape;
+    Tensor result;
+    int n;
+
+    // Forward computation
     if (shape.size() == 1) {
-        Tensor result({1});
+        result = Tensor({1});           // fix: must initialize result with shape
         Tensor m = sum();
         result.data[0] = m.data[0] / numel();
-        return result;
-    }
-    if (shape.size() == 2) {
+        n = numel();
+    } else if (shape.size() == 2) {
         int rows = shape[0], cols = shape[1];
         if (axis == 0) {
+            result = Tensor::zeros({rows});
             Tensor m = sum(0);
-            Tensor result = Tensor::zeros({rows});
             for (int r = 0; r < rows; r++)
                 result.data[r] = m.data[r] / cols;
-            return result;
-        }
-        if (axis == 1) {
+            n = cols;
+        } else if (axis == 1) {
+            result = Tensor::zeros({cols});
             Tensor m = sum(1);
-            Tensor result = Tensor::zeros({cols});
             for (int c = 0; c < cols; c++)
                 result.data[c] = m.data[c] / rows;
-            return result;
+            n = rows;
+        } else {
+            throw invalid_argument("mean only supports 1D and 2D tensors");
         }
+    } else {
+        throw invalid_argument("mean only supports 1D and 2D tensors");
     }
-    throw invalid_argument("mean only supports 1D and 2D tensors");
+
+    // Build graph - attach GradFn
+    if (requires_grad) {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new MeanBackward();
+        fn->original_shape = original;
+        fn->axis = axis;
+        fn->n = n;
+        fn->inputs = {this};
+        result.grad_fn = fn;
+    }
+
+    return result;  // fix: was missing
 }
