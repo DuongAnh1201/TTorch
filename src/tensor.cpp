@@ -294,29 +294,45 @@ Tensor Tensor::T() {
 }
 
 Tensor Tensor::sum(int axis) {
+    vector<int> original = shape;
+    Tensor result;
+
+    // Forward computation
     if (shape.size() == 1) {
-        Tensor result({1});
+        result = Tensor({1});
         result.data[0] = 0;
         for (double v : data) result.data[0] += v;
-        return result;
-    }
-    if (shape.size() == 2) {
+    } else if (shape.size() == 2) {
         int rows = shape[0], cols = shape[1];
         if (axis == 0) {
-            Tensor result = Tensor::zeros({rows});
+            result = Tensor::zeros({rows});
             for (int r = 0; r < rows; r++)
                 for (int c = 0; c < cols; c++)
                     result.data[r] += data[r * cols + c];
-            return result;
         } else if (axis == 1) {
-            Tensor result = Tensor::zeros({cols});
+            result = Tensor::zeros({cols});
             for (int c = 0; c < cols; c++)
                 for (int r = 0; r < rows; r++)
                     result.data[c] += data[r * cols + c];
-            return result;
+        } else {
+            throw invalid_argument("sum only supports 1D and 2D tensors");
         }
+    } else {
+        throw invalid_argument("sum only supports 1D and 2D tensors");
     }
-    throw invalid_argument("sum only supports 1D and 2D tensors");
+
+    // Build graph - attach GradFn (same for all cases)
+    if (requires_grad) {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new SumBackward();
+        fn->original_shape = original;
+        fn->axis = axis;
+        fn->inputs = {this};
+        result.grad_fn = fn;
+    }
+
+    return result;
 }
 
 Tensor Tensor::mean(int axis) {
