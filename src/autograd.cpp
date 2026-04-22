@@ -85,6 +85,11 @@ void TransposeBackward::backward(Tensor& g)
     accum_grad(inputs[0], grad_T);
 }
 
+void FlattenBackward::backward(Tensor& g)
+{
+    Tensor grad_a;
+    grad_a = g.reshape(original_shape);
+}
 //Gradient Functions
 
 //Backward Engine
