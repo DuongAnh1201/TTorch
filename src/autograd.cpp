@@ -78,6 +78,13 @@ void DotBackward::backward(Tensor& g)
     grad_b = a_T.dot(g);
     accum_grad(inputs[1], grad_b);
 }
+
+void TransposeBackward::backward(Tensor& g)
+{
+    Tensor grad_T = g.T();
+    accum_grad(inputs[0], grad_T);
+}
+
 //Gradient Functions
 
 //Backward Engine
