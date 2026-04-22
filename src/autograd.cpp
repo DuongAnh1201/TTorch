@@ -38,6 +38,23 @@ void AddScalarBackward::backward(Tensor& g)
     accum_grad(inputs[0], g);
 }
 
+void MulBackward::backward(Tensor& g)
+{
+    Tensor grad_a(saved_a.shape);
+    for(int i = 0; (int) g.data.size(); i++)
+    {
+        grad_a.data[i] = g.data[i] * saved_b.data[i];
+    }
+    accum_grad(inputs[0], grad_a);
+    
+    Tensor grad_b(saved_b.shape);
+    for(int i=0; i<(int) g.data.size(); i++)
+    {
+        grad_b.data[i] = g.data[i]*saved_a.data[i];
+    }
+    accum_grad(inputs[1], grad_b);
+}
+
 
 //Gradient Functions
 
