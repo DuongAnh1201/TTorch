@@ -7,7 +7,7 @@ using namespace std;
 
 //Core Infrastructure
 //Helper function
-static void acum_grad(Tensor* t, const Tensor& g)
+static void accum_grad(Tensor* t, const Tensor& g)
 {
     if(!t->requires_grad)
     {
@@ -29,9 +29,16 @@ static void acum_grad(Tensor* t, const Tensor& g)
 // backward: grad flows to both a and b unchanged
 void AddBackward::backward(Tensor& g)
 {
-    acum_grad(inputs[1], g);
-    acum_grad(inputs[1], g);
+    accum_grad(inputs[0], g);
+    accum_grad(inputs[1], g);
 }
+
+void AddScalarBackward::backward(Tensor& g)
+{
+    accum_grad(inputs[0], g);
+}
+
+
 //Gradient Functions
 
 //Backward Engine
