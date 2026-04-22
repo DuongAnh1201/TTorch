@@ -66,7 +66,18 @@ void ScaleBackward::backward(Tensor& g)
     
 }
 
-
+void DotBackward::backward(Tensor& g)
+{
+    Tensor grad_a(saved_a.shape);
+    Tensor b_T = saved_b.T();
+    grad_a = g.dot(b_T);
+    accum_grad(inputs[0], grad_a);
+    
+    Tensor grad_b(saved_b.shape);
+    Tensor a_T = saved_a.T();
+    grad_b = a_T.dot(g);
+    accum_grad(inputs[1], grad_b);
+}
 //Gradient Functions
 
 //Backward Engine
