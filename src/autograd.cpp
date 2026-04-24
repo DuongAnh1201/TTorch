@@ -41,7 +41,7 @@ void AddScalarBackward::backward(Tensor& g)
 void MulBackward::backward(Tensor& g)
 {
     Tensor grad_a(saved_a.shape);
-    for(int i = 0; (int) g.data.size(); i++)
+    for(int i = 0; i<(int) g.data.size(); i++)
     {
         grad_a.data[i] = g.data[i] * saved_b.data[i];
     }
@@ -89,6 +89,7 @@ void FlattenBackward::backward(Tensor& g)
 {
     Tensor grad_a;
     grad_a = g.reshape(original_shape);
+    accum_grad(inputs[0],grad_a);
 }
 
 static Tensor broadcast(const Tensor& grad, const vector<int>& original_shape, int axis)
@@ -109,7 +110,7 @@ static Tensor broadcast(const Tensor& grad, const vector<int>& original_shape, i
         {
             for (int c = 0; c<cols; c++)
             {
-                result.data[r*cols+c] = grad.data[r];
+                result.data[r*cols+c] = grad.data[c];
             }
         }
     }
@@ -117,21 +118,33 @@ static Tensor broadcast(const Tensor& grad, const vector<int>& original_shape, i
 }
 void SumBackward::backward(Tensor& g)
 {
-    if(axis == 0)
+    if (original_shape.size() == 1)
     {
         Tensor grad_a(original_shape);
-        for(double& v : grad_a.data) v = grad_a.data[0];
+        for (double& v: grad_a.data) v = g.data[0];
+        accum_grad(inputs[0], grad_a);
     }
-    if (axis == 1)
-    {
+    else if (original_shape.size() == 2) {
         Tensor grad_a = broadcast(g, original_shape, axis);
         accum_grad(inputs[0], grad_a);
     }
 }
-//Gradient Functions
 
-//Backward Engine
-
-//Activation Functions
-
-// 
+void MeanBackward::backward(Tensor& g)
+{
+    if(axis == 0)
+    {
+        Tensor grad_a(original_shape);
+        for(double& v : grad_a.data) v = g.data[0]/n;
+        accum_grad(inputs[0], grad_a);
+    }
+    if (axis == 1)
+    {
+        Tensor grad_a = broadcast(g, original_shape, axis);
+        
+        for (int i = 0; i< original_shape[0]; i++)
+        {
+            Tensor grad_a(original_shape);
+            
+        }
+    }
