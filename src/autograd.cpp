@@ -2,6 +2,7 @@
 #include<iostream>
 #include "tensor.h"
 #include "autograd.h"
+#include<cmath>
 
 using namespace std;
 
@@ -152,9 +153,30 @@ void MeanBackward::backward(Tensor& g)
 
 Tensor sigmoid(Tensor& x)
 {
+    Tensor result(x.shape);
     for (int i = 0; i< (int)x.data.size(); i++)
     {
-        x.data[i] = 1/(1+exp(-x.data[i]));
+        result.data[i] = 1/(1+exp(-x.data[i]));
+    }
+    
+    if (x.requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new SigmoidBackward();
+        fn->saved_output = result;
+        fn->inputs = {&x};
+        result.grad_fn = fn;
+    }
+    return x;
+}
+
+Tensor relu(Tensor& x)
+{
+    for (int i = 0; i<(int)x.data.size(); i++)
+    {
+        x.data[i] = max(0, x.data[i]);
+        
     }
     return x;
 }
