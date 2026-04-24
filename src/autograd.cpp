@@ -149,3 +149,12 @@ void MeanBackward::backward(Tensor& g)
         
     }
 }
+
+Tensor sigmoid(Tensor& x)
+{
+    for (int i = 0; i< (int)x.data.size(); i++)
+    {
+        x.data[i] = 1/(1+exp(-x.data[i]));
+    }
+    return x;
+}
