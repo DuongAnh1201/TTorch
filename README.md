@@ -277,7 +277,10 @@ Planned development milestones:
 * [x] Core tensor data structure
 * [x] Tensor math operations (add, multiply, dot, transpose, sum, mean)
 * [x] Autograd computation graph (GradFn architecture)
-* [ ] Backpropagation engine
+* [x] Backpropagation engine (backward, zero_grad)
+* [x] Activation functions (relu, sigmoid)
+* [ ] Tensor::backward() engine (build_topo + reverse walk)
+* [ ] Python bindings (pybind11)
 * [ ] Neural network modules
 * [ ] Optimizers
 * [ ] GPU backend support
