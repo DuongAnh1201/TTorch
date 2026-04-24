@@ -94,7 +94,26 @@ void FlattenBackward::backward(Tensor& g)
 static Tensor broadcast(const Tensor& grad, const vector<int>& original_shape, int axis)
 {
     Tensor result(original_shape);
-    
+    int rows = original_shape[0];
+    int cols = original_shape[1];
+    if(axis == 0)
+    {
+        for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+                result.data[r * cols + c] = grad.data[r];
+
+    }
+    else
+    {
+        for (int r =0; r<rows; r++)
+        {
+            for (int c = 0; c<cols; c++)
+            {
+                result.data[r*cols+c] = grad.data[r];
+            }
+        }
+    }
+    return result;
 }
 void SumBackward::backward(Tensor& g)
 {
