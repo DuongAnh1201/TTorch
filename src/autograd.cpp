@@ -151,6 +151,17 @@ void MeanBackward::backward(Tensor& g)
     }
 }
 
+void SigmoidBackward::backward(Tensor& g)
+{
+    Tensor grad_a(g.shape);
+    for (int i=0; i<(int)g.data.size(); i++)
+    {
+        grad_a.data[i] = g.data[i]*saved_output.data[i]*(1-saved_output.data[i]);
+    }
+    accum_grad(inputs[0], grad_a);
+}
+
+
 Tensor sigmoid(Tensor& x)
 {
     Tensor result(x.shape);
@@ -170,6 +181,7 @@ Tensor sigmoid(Tensor& x)
     }
     return result;
 }
+
 
 Tensor relu(Tensor& x)
 {
