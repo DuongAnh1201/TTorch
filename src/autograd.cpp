@@ -90,6 +90,16 @@ void FlattenBackward::backward(Tensor& g)
     Tensor grad_a;
     grad_a = g.reshape(original_shape);
 }
+
+static Tensor broadcast(const Tensor& grad, const vector<int>& original_shape, int axis)
+{
+    Tensor result(original_shape);
+    
+}
+void SumBackward::backward(Tensor& g)
+{
+    
+}
 //Gradient Functions
 
 //Backward Engine
