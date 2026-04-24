@@ -203,7 +203,7 @@ Tensor relu(Tensor& x)
     Tensor result(x.shape);
     for (int i = 0; i<(int)x.data.size(); i++)
     {
-        result.data[i] = max(0, x.data[i]);
+        result.data[i] = max(0.0, x.data[i]);
     }
     
     if (x.requires_grad)
