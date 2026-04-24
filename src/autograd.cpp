@@ -161,6 +161,21 @@ void SigmoidBackward::backward(Tensor& g)
     accum_grad(inputs[0], grad_a);
 }
 
+void ReLUBackward::backward(Tensor& g)
+{
+    Tensor grad_a(g.shape);
+    for(int i=0; i<(int)g.data.size(); i++)
+    {
+        if (saved_input.data[i]>0){
+            grad_a.data[i] = g.data[i];
+        }
+        else
+        {
+            grad_a.data[i] = 0;
+        }
+    }
+    accum_grad(inputs[0], grad_a);
+}
 
 Tensor sigmoid(Tensor& x)
 {
