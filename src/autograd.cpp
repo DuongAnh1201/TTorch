@@ -132,19 +132,20 @@ void SumBackward::backward(Tensor& g)
 
 void MeanBackward::backward(Tensor& g)
 {
-    if(axis == 0)
+    if(original_shape.size() == 1)
     {
         Tensor grad_a(original_shape);
-        for(double& v : grad_a.data) v = g.data[0]/n;
+        for (double& v:grad_a.data) v = g.data[0]/n;
         accum_grad(inputs[0], grad_a);
     }
-    if (axis == 1)
+    else if(original_shape.size() == 2)
     {
         Tensor grad_a = broadcast(g, original_shape, axis);
-        
-        for (int i = 0; i< original_shape[0]; i++)
+        for (int i = 0; i < (int)grad_a.data.size(); i++)
         {
-            Tensor grad_a(original_shape);
-            
+            grad_a.data[i] = grad_a.data[i] / n;
         }
+        accum_grad(inputs[0], grad_a);
+        
     }
+}
