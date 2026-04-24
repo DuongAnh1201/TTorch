@@ -117,7 +117,16 @@ static Tensor broadcast(const Tensor& grad, const vector<int>& original_shape, i
 }
 void SumBackward::backward(Tensor& g)
 {
-    
+    if(axis == 0)
+    {
+        Tensor grad_a(original_shape);
+        for(double& v : grad_a.data) v = grad_a.data[0];
+    }
+    if (axis == 1)
+    {
+        Tensor grad_a = broadcast(g, original_shape, axis);
+        accum_grad(inputs[0], grad_a);
+    }
 }
 //Gradient Functions
 
