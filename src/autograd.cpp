@@ -168,15 +168,25 @@ Tensor sigmoid(Tensor& x)
         fn->inputs = {&x};
         result.grad_fn = fn;
     }
-    return x;
+    return result;
 }
 
 Tensor relu(Tensor& x)
 {
+    Tensor result(x.shape);
     for (int i = 0; i<(int)x.data.size(); i++)
     {
-        x.data[i] = max(0, x.data[i]);
-        
+        result.data[i] = max(0, x.data[i]);
     }
-    return x;
+    
+    if (x.requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new ReLUBackward();
+        fn->saved_input = x;
+        fn->inputs = {&x};
+        result.grad_fn = fn;
+    }
+    return result;
 }
