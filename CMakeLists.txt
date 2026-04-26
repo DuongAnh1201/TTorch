@@ -1,32 +1,32 @@
-cmake_minimum_required(VERSION 3.18)
-
+cmake_minimum_required(VERSION 3.15)
 project(ttorch LANGUAGES CXX)
 
-# Require modern C++
+# ---- C++ standard ----
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Suppress CMP0148 deprecation warning from pybind11's FindPythonLibsNew
-cmake_policy(SET CMP0148 OLD)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# ---- Find pybind11 ----
+find_package(pybind11 REQUIRED)
 
-# Find dependencies
-find_package(pybind11 CONFIG REQUIRED)
-
-# Source files
-set(SOURCES
+# ---- Build the Python extension ----
+pybind11_add_module(_C
     src/tensor.cpp
     src/autograd.cpp
     src/bindings.cpp
 )
 
-# Build Python module
-pybind11_add_module(ttorch ${SOURCES})
+# ---- Include headers ----
+target_include_directories(_C PRIVATE include)
 
-# Include header directory
-target_include_directories(ttorch PRIVATE include)
-
-# Optional optimization flags
-target_compile_options(ttorch PRIVATE
+# ---- Optimization ----
+target_compile_options(_C PRIVATE
     $<$<CONFIG:Release>:-O3>
+)
+
+# ---- Install into Python package ----
+# This is the CRITICAL part for scikit-build-core
+install(TARGETS _C
+    LIBRARY DESTINATION ttorch   # Linux/macOS (.so)
+    ARCHIVE DESTINATION ttorch   # static libs (safe fallback)
+    RUNTIME DESTINATION ttorch   # Windows (.pyd)
 )

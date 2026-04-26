@@ -27,7 +27,7 @@ classifiers = [
 minimum-version = "0.8"
 cmake.source-dir = "."
 cmake.build-type = "Release"
-wheel.install-dir = "ttorch"
+wheel.packages = ["ttorch"]
 
 [tool.scikit-build.cmake.define]
 CMAKE_BUILD_TYPE = "Release"
