@@ -18,15 +18,20 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
-          # Target Python 3.11 for Linux x86_64
+          # 1. Use the modern AlmaLinux 8 image to support newer C++ features
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+          
+          # 2. Target Python 3.11
           CIBW_BUILD: "cp311-manylinux_x86_64"
           
-          # We use pip to install build tools because yum repos in 
-          # older manylinux images (like 2014) are often deprecated.
+          # 3. Use pip to install build tools (reliable)
           CIBW_BEFORE_BUILD: "pip install scikit-build-core pybind11 cmake ninja"
+          
+          # 4. DEBUG COMMAND: This will print the "Missing Library" list before failing
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel show {wheel} && auditwheel repair -w {dest_dir} {wheel}"
 
-          # Increase verbosity to see CMake output if something goes wrong
-          CIBW_BUILD_VERBOSITY: 1
+          # 5. High verbosity so we can see the full compiler linking step
+          CIBW_BUILD_VERBOSITY: 3
 
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v4
@@ -38,12 +43,11 @@ jobs:
     name: Publish to PyPI
     needs: [build_wheels]
     runs-on: ubuntu-latest
-    # Required for OIDC authentication
     permissions:
       id-token: write
 
     steps:
-      - name: Download wheels from build job
+      - name: Download wheels
         uses: actions/download-artifact@v4
         with:
           name: pypi-wheels
@@ -52,7 +56,5 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # This action uses your repository's Trusted Publisher settings 
-          # or the PYPI_API_TOKEN secret.
           password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: true
