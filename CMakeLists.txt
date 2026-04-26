@@ -28,5 +28,5 @@ target_include_directories(ttorch PRIVATE include)
 
 # Optional optimization flags
 target_compile_options(ttorch PRIVATE
-    $<$<CONFIG:Release>:-O3 -march=native>
+    $<$<CONFIG:Release>:-O3>
 )
