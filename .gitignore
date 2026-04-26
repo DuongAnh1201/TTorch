@@ -64,6 +64,7 @@ dist/
 *.egg-info/
 .venv/
 venv/
+.env
 
 # IDE / editor
 .vscode/
