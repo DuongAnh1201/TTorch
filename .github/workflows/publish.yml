@@ -23,11 +23,11 @@ jobs:
           
           # We use pip to install build tools because yum repos in 
           # older manylinux images (like 2014) are often deprecated.
-          CIBW_BEFORE_BUILD: "pip install scikit-build-core pybind11 cmake ninja"
-          
+          CIBW_BEFORE_BUILD: "pip install scikit-build-core pybind11 cmake ninja auditwheel"
+
           # auditwheel converts the generic 'linux_x86_64' tag to 'manylinux...'
           # This is mandatory for PyPI uploads.
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w {dest_dir} {wheel}"
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "python -m auditwheel repair -w {dest_dir} {wheel}"
           
           # Increase verbosity to see CMake output if something goes wrong
           CIBW_BUILD_VERBOSITY: 1
@@ -59,4 +59,4 @@ jobs:
           # This action uses your repository's Trusted Publisher settings 
           # or the PYPI_API_TOKEN secret.
           password: ${{ secrets.PYPI_API_TOKEN }}
-          skip-existing: trues
+          skip-existing: true
