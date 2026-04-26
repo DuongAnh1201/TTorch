@@ -8,31 +8,29 @@ on:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        # You can add macos-latest or windows-latest here later!
-        os: [ubuntu-latest]
+    name: Build wheels on ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.16.5
         env:
-          # Targets Python 3.11. 
-          # Change to "cp3*-manylinux_x86_64" to build for all supported Py3 versions
+          # Target Python 3.11 for Linux x86_64
           CIBW_BUILD: "cp311-manylinux_x86_64"
           
-          # This installs system-level dependencies inside the Docker container
-          CIBW_BEFORE_ALL_LINUX: "yum install -y cmake3 ninja-build"
+          # We use pip to install build tools because yum repos in 
+          # older manylinux images (like 2014) are often deprecated.
+          CIBW_BEFORE_BUILD: "pip install scikit-build-core pybind11 cmake ninja"
           
-          # Scikit-build-core will handle the rest, but we ensure build tools are present
-          CIBW_BEFORE_BUILD: "pip install scikit-build-core pybind11"
-          
-          # This is the magic step that makes the wheel PyPI-compliant
+          # auditwheel converts the generic 'linux_x86_64' tag to 'manylinux...'
+          # This is mandatory for PyPI uploads.
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w {dest_dir} {wheel}"
+          
+          # Increase verbosity to see CMake output if something goes wrong
+          CIBW_BUILD_VERBOSITY: 1
 
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v4
@@ -44,12 +42,12 @@ jobs:
     name: Publish to PyPI
     needs: [build_wheels]
     runs-on: ubuntu-latest
-    # Recommended for secure publishing
+    # Required for OIDC authentication
     permissions:
       id-token: write
 
     steps:
-      - name: Download wheels
+      - name: Download wheels from build job
         uses: actions/download-artifact@v4
         with:
           name: pypi-wheels
@@ -58,6 +56,7 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # If using a secret token:
+          # This action uses your repository's Trusted Publisher settings 
+          # or the PYPI_API_TOKEN secret.
           password: ${{ secrets.PYPI_API_TOKEN }}
-          skip-existing: true
+          skip-existing: trues
