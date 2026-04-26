@@ -25,6 +25,11 @@ static void accum_grad(Tensor* t, const Tensor& g)
     }
 }
 
+void Tensor::backward()
+{
+    
+}
+
 // ── AddBackward ──────────────────────────────────────────────
 // forward:  c = a + b
 // backward: grad flows to both a and b unchanged
