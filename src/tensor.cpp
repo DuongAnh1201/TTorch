@@ -1,4 +1,5 @@
 #include "tensor.h"
+#include "autograd.h"
 #include <iostream>
 using namespace std;
 
@@ -73,9 +74,27 @@ Tensor Tensor::ones(initializer_list<int> dims) {
     return t;
 }
 
+Tensor Tensor::ones(const vector<int>& dims) {
+    Tensor t(dims);
+    t.data.assign(t.numel(), 1.0);
+    return t;
+}
+
+Tensor Tensor::zeros(const vector<int>& dims) {
+    Tensor t(dims);
+    t.data.assign(t.numel(), 0.0);
+    return t;
+}
+
 Tensor Tensor::custom(initializer_list<int> dims, double val) {
     Tensor t;
     t.shape = dims;
+    t.data.assign(t.numel(), val);
+    return t;
+}
+
+Tensor Tensor::custom(const vector<int>& dims, double val) {
+    Tensor t(dims);
     t.data.assign(t.numel(), val);
     return t;
 }
@@ -149,55 +168,108 @@ Tensor Tensor::view(vector<int> newshape) {
 
 Tensor Tensor::flatten() {
     int total = 1;
+    vector<int> original = shape;
     for (int d : shape) total *= d;
     Tensor result({total});
     result.data = data;
+    if (requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new FlattenBackward();
+        fn->original_shape = original;
+        fn->inputs = {this};
+        result.grad_fn = fn;
+    }
     return result;
 }
 
 // ── Math ops ─────────────────────────────────────────────────
 
-Tensor Tensor::add(Tensor n) {
+Tensor Tensor::add(Tensor& n) {
     if (shape != n.shape)
         throw invalid_argument("shapes are not compatible for add");
     Tensor result(shape);
     for (int i = 0; i < (int)result.data.size(); i++)
         result.data[i] = data[i] + n.data[i];
+    //Build graph - attach GradFn
+    if (requires_grad || n.requires_grad) 
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new AddBackward();
+        fn->inputs = {this, &n}; //connect to inputs
+        result.grad_fn = fn;
+    }
     return result;
 }
 
 Tensor Tensor::add_int(double i) {
-    Tensor t;
-    t.shape = shape;
-    t.data = data;
-    for (int j = 0; j < (int)t.data.size(); j++)
-        t.data[j] += i;
-    return t;
+    Tensor result;
+    result.shape = shape;
+    result.data = data;
+    for (int j = 0; j < (int)result.data.size(); j++)
+        result.data[j] += i;
+    // Build graph - attach GradFn
+    if (requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new AddScalarBackward();
+        fn->inputs = {this};
+        result.grad_fn = fn;
+    }
+    return result;
 }
 
 Tensor Tensor::scale_int(double i) {
-    Tensor t;
-    t.shape = shape;
-    t.data = data;
-    for (int j = 0; j < (int)t.data.size(); j++)
-        t.data[j] *= i;
-    return t;
+    Tensor result;
+    result.shape = shape;
+    result.data = data;
+    for (int j = 0; j < (int)result.data.size(); j++)
+        result.data[j] *= i;
+    //Build graph - attach GradFn
+    if(requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new ScaleBackward();
+        fn->scalar = i;  // save scalar — needed for grad_a = grad * scalar
+        fn->inputs = {this};
+        result.grad_fn = fn;
+    }
+    return result;
 }
 
-Tensor Tensor::multiply(Tensor b) {
+Tensor Tensor::multiply(Tensor &b) {
     if (shape != b.shape)
         throw invalid_argument("shapes are not compatible for multiply");
     Tensor result(shape);
     for (int i = 0; i < (int)data.size(); i++)
         result.data[i] = data[i] * b.data[i];
+    // Build graph - attach GradFn
+    if (requires_grad || b.requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new MulBackward();
+        fn->saved_a = *this;  // save a — needed for grad_b = grad * a
+        fn->saved_b = b;      // save b — needed for grad_a = grad * b
+        fn->inputs = {this, &b};
+        result.grad_fn = fn;
+    }
     return result;
 }
 
-Tensor Tensor::dot(Tensor b) {
+Tensor Tensor::dot(Tensor &b) {
     if (shape.size() != 2 && shape.size() != 1)
         throw invalid_argument("only accept 1D or 2D tensors");
     if (b.shape.size() != 2 && b.shape.size() != 1)
         throw invalid_argument("only accept 1D or 2D tensors");
+
+    // save original tensors before shape mutation
+    Tensor saved_a = *this;
+    Tensor saved_b = b;
 
     if (shape.size() == 1) shape = vector<int>{(int)data.size(), 1};
     if (b.shape.size() == 1) b.shape = vector<int>{(int)b.data.size(), 1};
@@ -213,6 +285,16 @@ Tensor Tensor::dot(Tensor b) {
         for (int j = 0; j < col_b; j++)
             for (int k = 0; k < col_a; k++)
                 result.data[i * col_b + j] += data[col_a * i + k] * b.data[col_b * k + j];
+    if (requires_grad || b.requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new DotBackward();
+        fn->saved_a = saved_a;  // needed for grad_b = a.T @ grad
+        fn->saved_b = saved_b;  // needed for grad_a = grad @ b.T
+        fn->inputs = {this, &b};
+        result.grad_fn = fn;
+    }
     return result;
 }
 
@@ -224,6 +306,14 @@ Tensor Tensor::transpose() {
     for (int r = 0; r < rows; r++)
         for (int c = 0; c < cols; c++)
             result.data[c * rows + r] = data[r * cols + c];
+    if (requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new TransposeBackward();
+        fn->inputs = {this};
+        result.grad_fn = fn;
+    }
     return result;
 }
 
@@ -232,54 +322,90 @@ Tensor Tensor::T() {
 }
 
 Tensor Tensor::sum(int axis) {
+    vector<int> original = shape;
+    Tensor result;
+
+    // Forward computation
     if (shape.size() == 1) {
-        Tensor result({1});
+        result = Tensor({1});
         result.data[0] = 0;
         for (double v : data) result.data[0] += v;
-        return result;
-    }
-    if (shape.size() == 2) {
+    } else if (shape.size() == 2) {
         int rows = shape[0], cols = shape[1];
         if (axis == 0) {
-            Tensor result = Tensor::zeros({rows});
+            result = Tensor::zeros({rows});
             for (int r = 0; r < rows; r++)
                 for (int c = 0; c < cols; c++)
                     result.data[r] += data[r * cols + c];
-            return result;
         } else if (axis == 1) {
-            Tensor result = Tensor::zeros({cols});
+            result = Tensor::zeros({cols});
             for (int c = 0; c < cols; c++)
                 for (int r = 0; r < rows; r++)
                     result.data[c] += data[r * cols + c];
-            return result;
+        } else {
+            throw invalid_argument("sum only supports 1D and 2D tensors");
         }
+    } else {
+        throw invalid_argument("sum only supports 1D and 2D tensors");
     }
-    throw invalid_argument("sum only supports 1D and 2D tensors");
+
+    // Build graph - attach GradFn (same for all cases)
+    if (requires_grad) {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new SumBackward();
+        fn->original_shape = original;
+        fn->axis = axis;
+        fn->inputs = {this};
+        result.grad_fn = fn;
+    }
+
+    return result;
 }
 
 Tensor Tensor::mean(int axis) {
+    vector<int> original = shape;
+    Tensor result;
+    int n;
+
+    // Forward computation
     if (shape.size() == 1) {
-        Tensor result({1});
+        result = Tensor({1});           // fix: must initialize result with shape
         Tensor m = sum();
         result.data[0] = m.data[0] / numel();
-        return result;
-    }
-    if (shape.size() == 2) {
+        n = numel();
+    } else if (shape.size() == 2) {
         int rows = shape[0], cols = shape[1];
         if (axis == 0) {
+            result = Tensor::zeros({rows});
             Tensor m = sum(0);
-            Tensor result = Tensor::zeros({rows});
             for (int r = 0; r < rows; r++)
                 result.data[r] = m.data[r] / cols;
-            return result;
-        }
-        if (axis == 1) {
+            n = cols;
+        } else if (axis == 1) {
+            result = Tensor::zeros({cols});
             Tensor m = sum(1);
-            Tensor result = Tensor::zeros({cols});
             for (int c = 0; c < cols; c++)
                 result.data[c] = m.data[c] / rows;
-            return result;
+            n = rows;
+        } else {
+            throw invalid_argument("mean only supports 1D and 2D tensors");
         }
+    } else {
+        throw invalid_argument("mean only supports 1D and 2D tensors");
     }
-    throw invalid_argument("mean only supports 1D and 2D tensors");
+
+    // Build graph - attach GradFn
+    if (requires_grad) {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new MeanBackward();
+        fn->original_shape = original;
+        fn->axis = axis;
+        fn->n = n;
+        fn->inputs = {this};
+        result.grad_fn = fn;
+    }
+
+    return result;  // fix: was missing
 }
