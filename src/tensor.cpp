@@ -74,9 +74,27 @@ Tensor Tensor::ones(initializer_list<int> dims) {
     return t;
 }
 
+Tensor Tensor::ones(const vector<int>& dims) {
+    Tensor t(dims);
+    t.data.assign(t.numel(), 1.0);
+    return t;
+}
+
+Tensor Tensor::zeros(const vector<int>& dims) {
+    Tensor t(dims);
+    t.data.assign(t.numel(), 0.0);
+    return t;
+}
+
 Tensor Tensor::custom(initializer_list<int> dims, double val) {
     Tensor t;
     t.shape = dims;
+    t.data.assign(t.numel(), val);
+    return t;
+}
+
+Tensor Tensor::custom(const vector<int>& dims, double val) {
+    Tensor t(dims);
     t.data.assign(t.numel(), val);
     return t;
 }

@@ -28,8 +28,11 @@ public:
 
     // --- Factory methods ---
     static Tensor zeros(std::initializer_list<int> dims);
+    static Tensor zeros(const std::vector<int>& dims);
     static Tensor ones(std::initializer_list<int> dims);
+    static Tensor ones(const std::vector<int>& dims);
     static Tensor custom(std::initializer_list<int> dims, double val);
+    static Tensor custom(const std::vector<int>& dims, double val);
     static Tensor form(std::initializer_list<int> dims, std::vector<double> data);
     static Tensor form(const std::vector<int>& dims, std::vector<double> data);
 
