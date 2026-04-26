@@ -4,48 +4,60 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  build-wheels:
-    runs-on: ubuntu-latest
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # You can add macos-latest or windows-latest here later!
+        os: [ubuntu-latest]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16
+        uses: pypa/cibuildwheel@v2.16.5
         env:
+          # Targets Python 3.11. 
+          # Change to "cp3*-manylinux_x86_64" to build for all supported Py3 versions
           CIBW_BUILD: "cp311-manylinux_x86_64"
-          CIBW_BEFORE_ALL: "yum install -y cmake3 ninja-build || true"
-          CIBW_BEFORE_BUILD: "pip install scikit-build-core pybind11 cmake ninja"
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
-            auditwheel show {wheel} &&
-            auditwheel repair -w {dest_dir} {wheel} --plat manylinux2014_x86_64 ||
-            (echo 'auditwheel failed, copying wheel as-is' && cp {wheel} {dest_dir})
-          CIBW_BUILD_VERBOSITY: 2
+          
+          # This installs system-level dependencies inside the Docker container
+          CIBW_BEFORE_ALL_LINUX: "yum install -y cmake3 ninja-build"
+          
+          # Scikit-build-core will handle the rest, but we ensure build tools are present
+          CIBW_BEFORE_BUILD: "pip install scikit-build-core pybind11"
+          
+          # This is the magic step that makes the wheel PyPI-compliant
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w {dest_dir} {wheel}"
 
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
-          path: wheelhouse/*
+          name: pypi-wheels
+          path: ./wheelhouse/*.whl
 
   publish:
-    needs: build-wheels
+    name: Publish to PyPI
+    needs: [build_wheels]
     runs-on: ubuntu-latest
+    # Recommended for secure publishing
+    permissions:
+      id-token: write
 
     steps:
       - name: Download wheels
         uses: actions/download-artifact@v4
         with:
-          name: wheels
+          name: pypi-wheels
           path: dist/
 
-      - name: Install twine
-        run: pip install twine
-
       - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/* --skip-existing --verbose
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # If using a secret token:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip-existing: true
