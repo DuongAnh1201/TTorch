@@ -12,7 +12,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Find dependencies
 find_package(pybind11 CONFIG REQUIRED)
-find_package(Eigen3 REQUIRED)
 
 # Source files
 set(SOURCES
@@ -26,9 +25,6 @@ pybind11_add_module(ttorch ${SOURCES})
 
 # Include header directory
 target_include_directories(ttorch PRIVATE include)
-
-# Link Eigen
-target_link_libraries(ttorch PRIVATE Eigen3::Eigen)
 
 # Optional optimization flags
 target_compile_options(ttorch PRIVATE
