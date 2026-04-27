@@ -1,263 +1,188 @@
 # TTorch
 
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
 ![C++](https://img.shields.io/badge/C++-17-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Build](https://img.shields.io/badge/build-CMake-orange.svg)
+![Version](https://img.shields.io/badge/version-0.1.2-orange.svg)
 
 `TTorch` is a **lightweight tensor and automatic differentiation library written in C++ with Python bindings**.
 
-The project explores the internal architecture of modern deep learning frameworks by implementing core components such as:
-
-* tensor operations
-* automatic differentiation (autograd)
-* Python bindings
-* modular compute kernels
-
-The long-term goal is to build a **minimal deep learning backend similar to PyTorch**, while keeping the codebase simple and educational.
+The project explores the internal architecture of modern deep learning frameworks by implementing core components from scratch: tensor operations, a dynamic computation graph, backpropagation, and Python bindings via pybind11.
 
 ---
 
-# Key Features
+## Features
 
-* **High-performance C++ core**
-* **Automatic differentiation engine**
-* **Python bindings for easy use**
-* **Modular tensor operation system**
-* **CMake-based build system**
-* **Python package distribution via `pyproject.toml`**
+- **C++17 core** — tensors, math ops, shape manipulation
+- **Dynamic autograd engine** — computation graph built during the forward pass, traversed in reverse on `backward()`
+- **Activation functions** — `relu`, `sigmoid` with gradient tracking
+- **Python bindings** — full API exposed via pybind11
+- **scikit-build-core** build backend — `pip install` works out of the box
+- **CI/CD** — wheels built via cibuildwheel and published to PyPI on push to `main`
 
 ---
 
-# Project Structure
+## Project Structure
 
 ```
 TTorch/
-│
-├── pyproject.toml
-├── CMakeLists.txt
+├── pyproject.toml        # Python build config (scikit-build-core + pybind11)
+├── CMakeLists.txt        # C++ build config
 ├── README.md
+├── AUTOGRAD.md           # Deep-dive into the autograd design
 ├── LICENSE
 │
-├── src/
-│   ├── tensor.cpp
-│   ├── autograd.cpp
-│   └── bindings.cpp
-│
 ├── include/
-│   ├── tensor.h
-│   └── autograd.h
+│   ├── tensor.h          # Tensor class declaration + autograd fields
+│   └── autograd.h        # GradFn base class + all GradFn subclasses
 │
-├── python/
-│   └── my_cpp_lib/
-│       └── __init__.py
+├── src/
+│   ├── tensor.cpp        # Tensor ops + forward graph building
+│   ├── autograd.cpp      # Backward engine + gradient rules
+│   └── bindings.cpp      # pybind11 Python bindings
+│
+├── ttorch/
+│   └── __init__.py       # Python package entry point
 │
 └── tests/
-    └── test.cpp
+    └── test.cpp          # C++ unit tests
 ```
-
-### Directory Overview
-
-| Directory        | Purpose                    |
-| ---------------- | -------------------------- |
-| `src/`           | C++ source implementation  |
-| `include/`       | Public C++ headers         |
-| `python/`        | Python interface package   |
-| `tests/`         | Unit tests                 |
-| `pyproject.toml` | Python build configuration |
-| `CMakeLists.txt` | C++ build configuration    |
 
 ---
 
-# Installation
+## Installation
 
-## Install from Source
+### From PyPI (recommended)
 
-Clone the repository:
+```bash
+pip install ttorch
+```
+
+### From Source
 
 ```bash
 git clone https://github.com/DuongAnh1212/TTorch.git
 cd TTorch
+pip install .
 ```
 
-Install build tools:
+Or build a wheel manually:
 
 ```bash
 pip install build
-```
-
-Build the Python package:
-
-```bash
 python -m build
-```
-
-Install the generated wheel:
-
-```bash
 pip install dist/*.whl
 ```
 
+**Requirements:** Python 3.11+, a C++17-capable compiler, CMake.
+
 ---
 
-# Quick Example
+## Quick Start
 
-```cpp
-#include "tensor.h"
+### Python
 
-// Create tensors
-Tensor a = Tensor::form({2, 3}, {1, 2, 3, 4, 5, 6});
-Tensor b = Tensor::ones({2, 3});
+```python
+import ttorch
 
-// Element-wise operations
-Tensor c = a.add(b);         // element-wise addition
-Tensor d = a.multiply(b);    // element-wise multiplication
-Tensor e = a.add_int(10.0);  // broadcast scalar addition
-Tensor f = a.scale_int(2.0); // broadcast scalar multiply
+# Create tensors
+a = ttorch.Tensor.form([2, 3], [1, 2, 3, 4, 5, 6])
+b = ttorch.Tensor.ones([2, 3])
 
-// Matrix operations
-Tensor t  = a.transpose();   // or a.T()
-Tensor ab = a.dot(a.T());    // matrix multiplication → (2,2)
+# Math ops
+c = a.add(b)          # element-wise addition
+d = a.multiply(b)     # element-wise multiplication
+e = a.dot(a.T())      # matrix multiply → shape (2, 2)
+s = a.sum(0)          # sum along axis 0 → shape (3,)
 
-// Reductions
-Tensor s = a.sum(0);   // sum along axis 0 → shape (3,)
-Tensor m = a.mean(1);  // mean along axis 1 → shape (2,)
-
-// Shape manipulation
-Tensor flat = a.flatten();        // → shape (6,)
-Tensor r    = a.reshape({3, 2});  // → shape (3,2)
-
-// Print
-a.print();
+# Autograd
+a.requires_grad = True
+y = ttorch.relu(a)
+y.backward()
+print(a.grad)         # gradient of a
+a.zero_grad()
 ```
 
----
-
-# Autograd Example
+### C++
 
 ```cpp
 #include "tensor.h"
 #include "autograd.h"
 
-Tensor x = Tensor::form({2, 2}, {1, 2, 3, 4});
-x.requires_grad = true;
+Tensor a = Tensor::form({2, 3}, {1, 2, 3, 4, 5, 6});
+a.requires_grad = true;
 
-Tensor y = relu(x);   // forward pass with grad tracking
-y.backward();         // backpropagate gradients
+Tensor y = relu(a);
+y.backward();
 
-x.grad->print();      // gradient of x
-x.zero_grad();        // reset gradients
+a.grad->print();  // gradient of a
+a.zero_grad();
 ```
 
 ---
 
-# Development
+## Tensor API
 
-### Build with CMake
-
-```bash
-mkdir build
-cd build
-cmake ..
-make
-```
-
-### Run tests
-
-```bash
-pytest
-```
-
----
-
-# Architecture Overview
-
-The library follows a layered architecture similar to modern deep learning frameworks:
-
-```
-Python API
-     ↓
-Python Bindings (pybind11)
-     ↓
-C++ Core Library
-     ↓
-Tensor + Autograd Engine
-     ↓
-CPU / Future GPU Kernels
-```
-
----
-
-# Tensor API
-
-### Static Constructors
+### Factory Methods
 
 | Method | Description |
 |---|---|
-| `Tensor::zeros({rows, cols})` | Tensor filled with 0.0 |
-| `Tensor::ones({rows, cols})` | Tensor filled with 1.0 |
-| `Tensor::custom({rows, cols}, val)` | Tensor filled with a custom scalar |
-| `Tensor::form({rows, cols}, data)` | Tensor from a `vector<double>` |
+| `Tensor::zeros(dims)` | Tensor filled with 0.0 |
+| `Tensor::ones(dims)` | Tensor filled with 1.0 |
+| `Tensor::custom(dims, val)` | Tensor filled with a scalar |
+| `Tensor::form(dims, data)` | Tensor from a `vector<double>` |
 
 ### Shape & Access
 
 | Method | Description |
 |---|---|
 | `dims()` | Returns shape as `vector<int>` |
-| `ndim()` | Returns the number of dimensions |
-| `size(int dim)` | Returns the size of a given dimension |
-| `at({i, j})` | Element access by index |
-| `value(data)` | Set tensor data from `vector<double>` |
-| `slice(v, start, end)` | Extract a sub-range from a flat data vector |
-| `reshape(newshape)` | Returns reshaped tensor (same total elements) |
-| `view(newshape)` | Alias for reshape, also prints the result |
+| `ndim()` | Number of dimensions |
+| `size(dim)` | Size of a given dimension |
+| `at(index)` | Element access by multi-index |
+| `reshape(newshape)` | Returns reshaped tensor |
+| `view(newshape)` | Alias for reshape |
 | `flatten()` | Returns 1D tensor |
 
 ### Math Operations
 
 | Method | Description |
 |---|---|
-| `add(Tensor)` | Element-wise addition (same shape) |
-| `add_int(double)` | Add scalar to every element |
-| `scale_int(double)` | Multiply every element by scalar |
-| `multiply(Tensor)` | Element-wise multiplication (same shape) |
-| `dot(Tensor)` | Matrix multiplication — supports 1D and 2D tensors |
+| `add(Tensor)` | Element-wise addition |
+| `add_int(double)` | Scalar broadcast addition |
+| `scale_int(double)` | Scalar broadcast multiply |
+| `multiply(Tensor)` | Element-wise multiplication |
+| `dot(Tensor)` | Matrix multiplication (1D and 2D) |
 | `transpose()` / `T()` | Transpose a 2D tensor |
-| `sum(axis)` | Sum along axis (1D or 2D) |
-| `mean(axis)` | Mean along axis (1D or 2D) |
+| `sum(axis)` | Sum along axis |
+| `mean(axis)` | Mean along axis |
 
 ### Autograd
 
 | Method | Description |
 |---|---|
-| `backward()` | Backpropagate gradients from this tensor |
+| `backward()` | Backpropagate gradients through the computation graph |
 | `zero_grad()` | Reset accumulated gradient to zero |
-
-### Display
-
-| Method | Description |
-|---|---|
-| `print()` | Pretty-print the tensor with nested brackets |
 
 ---
 
-# Autograd API
+## Autograd API
 
-TTorch implements a dynamic computation graph. Each operation attaches a `GradFn` to the output tensor, enabling automatic gradient computation via `backward()`.
+TTorch implements a dynamic computation graph — the graph is built automatically during the forward pass as a chain of `GradFn` pointers.
 
 ### Gradient Functions
 
 | GradFn | Forward op | Backward rule |
 |---|---|---|
-| `AddBackward` | `add(a, b)` | grad flows equally to `a` and `b` |
+| `AddBackward` | `add(a, b)` | grad flows to `a` and `b` unchanged |
 | `AddScalarBackward` | `add_int(a, s)` | grad flows to `a` unchanged |
 | `MulBackward` | `multiply(a, b)` | `grad_a = grad * b`, `grad_b = grad * a` |
 | `ScaleBackward` | `scale_int(a, s)` | `grad_a = grad * s` |
 | `DotBackward` | `dot(a, b)` | `grad_a = grad @ b.T`, `grad_b = a.T @ grad` |
-| `TransposeBackward` | `transpose(a)` | `grad_a = grad.transpose()` |
+| `TransposeBackward` | `transpose(a)` | `grad_a = grad.T` |
 | `FlattenBackward` | `flatten(a)` | `grad_a = grad.reshape(original_shape)` |
 | `SumBackward` | `sum(a, axis)` | broadcast grad back to original shape |
-| `MeanBackward` | `mean(a, axis)` | `grad / N`, broadcast back to original shape |
+| `MeanBackward` | `mean(a, axis)` | broadcast `grad / n` back to original shape |
 | `ReLUBackward` | `relu(a)` | `grad_a = grad * (a > 0)` |
 | `SigmoidBackward` | `sigmoid(a)` | `grad_a = grad * sigmoid(a) * (1 - sigmoid(a))` |
 
@@ -270,70 +195,67 @@ TTorch implements a dynamic computation graph. Each operation attaches a `GradFn
 
 ---
 
-# Roadmap
+## Architecture
 
-Planned development milestones:
+```
+Python API (ttorch)
+      ↓
+pybind11 bindings  (src/bindings.cpp)
+      ↓
+C++ Core
+  ├── Tensor + math ops   (include/tensor.h, src/tensor.cpp)
+  └── Autograd engine     (include/autograd.h, src/autograd.cpp)
+```
 
-* [x] Core tensor data structure
-* [x] Tensor math operations (add, multiply, dot, transpose, sum, mean)
-* [x] Autograd computation graph (GradFn architecture)
-* [x] Backpropagation engine (backward, zero_grad)
-* [x] Activation functions (relu, sigmoid)
-* [ ] Tensor::backward() engine (build_topo + reverse walk)
-* [ ] Python bindings (pybind11)
-* [ ] Neural network modules
-* [ ] Optimizers
-* [ ] GPU backend support
-
----
-
-# Dependencies
-
-Core dependencies:
-
-* **C++17**
-* **CMake**
-* **Python 3.8+**
-* **pybind11**
-
-Additional dependencies may be introduced as the project evolves.
+The backward engine uses topological sort to visit nodes in reverse dependency order, accumulating gradients into leaf tensors. See [AUTOGRAD.md](AUTOGRAD.md) for a detailed design walkthrough with worked examples.
 
 ---
 
-# Contributing
+## Build from C++ Only
 
-Contributions are welcome.
-
-Steps to contribute:
-
-1. Fork the repository
-2. Create a feature branch
-3. Implement your changes
-4. Submit a pull request
-
-Please ensure that tests pass before submitting contributions.
+```bash
+mkdir build && cd build
+cmake ..
+make
+```
 
 ---
 
-# License
+## Roadmap
 
-This project is licensed under the terms described in the `LICENSE` file.
+- [x] Core tensor data structure
+- [x] Tensor math operations (add, multiply, dot, transpose, sum, mean)
+- [x] Autograd computation graph (GradFn architecture)
+- [x] Backpropagation engine (`backward`, `zero_grad`)
+- [x] Activation functions (relu, sigmoid)
+- [x] Python bindings (pybind11 via scikit-build-core)
+- [x] PyPI publishing via CI/CD (cibuildwheel + GitHub Actions)
+- [ ] Neural network modules (Linear, loss functions)
+- [ ] Optimizers (SGD, Adam)
+- [ ] GPU backend
 
 ---
 
-# Status
+## Dependencies
 
-This project is currently **experimental and under active development**.
-
-APIs and internal design may change as the project evolves.
+| Dependency | Purpose |
+|---|---|
+| C++17 | Core library |
+| CMake | Build system |
+| Python 3.11+ | Python interface |
+| pybind11 | Python bindings |
+| scikit-build-core | Python build backend |
 
 ---
 
-# Inspiration
+## License
 
-This project is inspired by the architecture of modern ML frameworks:
+MIT — see [LICENSE](LICENSE).
 
-* PyTorch
-* TensorFlow
-* tinygrad
-* NumPy
+---
+
+## Inspiration
+
+- [PyTorch](https://pytorch.org/)
+- [tinygrad](https://github.com/tinygrad/tinygrad)
+- [micrograd](https://github.com/karpathy/micrograd)
