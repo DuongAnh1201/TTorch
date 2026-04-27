@@ -5,7 +5,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(ttorch, m) {
+PYBIND11_MODULE(_C, m) {
     m.doc() = "TTorch — lightweight tensor and autograd library";
 
     py::class_<Tensor>(m, "Tensor")
