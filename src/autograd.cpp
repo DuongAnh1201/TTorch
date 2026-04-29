@@ -27,7 +27,14 @@ static void accum_grad(Tensor* t, const Tensor& g)
 
 void Tensor::backward()
 {
-    
+
+}
+
+void Tensor::zero_grad()
+{
+    if (grad) {
+        for (double& v : grad->data) v = 0.0;
+    }
 }
 
 // ── AddBackward ──────────────────────────────────────────────

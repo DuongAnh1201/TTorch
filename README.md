@@ -247,6 +247,16 @@ make
 | scikit-build-core | Python build backend |
 
 ---
+## Fix Small Information
+The last number of the patch will increment in terms of changing small information and does not harm to the code.
+## Minor changes
+The minor number will increment if a new interface, API, or type is introduced into the public interface of TTorch. 
+
+## Patch Changes
+The patch number will increment if:
+      1. Bug fixes that align code to the behevior of an API, improves performance or improves code size efficiently
+
+For now, you cannot expect ABI or API stability with anything in the **update_method** branch.
 
 ## License
 
