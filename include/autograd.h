@@ -79,7 +79,13 @@ struct SigmoidBackward : GradFn {
     void backward(Tensor& grad) override;
 };
 
+//Softmax(a)
+struct SoftmaxBackward : GradFn{
+    void backward(Tensor& grad) override;
+};
+
 // ── Free function ops ─────────────────────────────────────────
 // These wrap the Tensor methods and attach the correct GradFn
 Tensor relu(Tensor& x);
 Tensor sigmoid(Tensor& x);
+Tensor softmax(Tensor& x);
