@@ -229,3 +229,29 @@ Tensor relu(Tensor& x)
     }
     return result;
 }
+
+Tensor softmax(Tensor& x)
+{
+    double denor= 0;
+    vector<double> data;
+    for (int i = 0; i < (int)x.data.size(); i++){
+        double m = exp(x.data[i]);
+        denor += m;
+        data.push_back(m);
+    }
+    Tensor result(x.shape);
+    for (int i = 0; i<(int)x.data.size(); i++){
+        result.data[i] = data[i]/denor;
+    }
+
+    if(x.requires_grad){
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new SoftmaxBackward();
+         
+    }
+
+
+
+
+}
