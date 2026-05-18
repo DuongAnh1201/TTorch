@@ -3,6 +3,7 @@
 #include "tensor.h"
 #include "autograd.h"
 #include<cmath>
+#include<unordered_set>
 
 using namespace std;
 
@@ -25,6 +26,15 @@ static void accum_grad(Tensor* t, const Tensor& g)
     }
 }
 
+static void topo_sort(Tensor* t, unordered_set<Tensor*>& visited, vector<Tensor*>& order)
+{
+    if(visited.count(t) || t->grad_fn == nullptr){ return;}
+    visited.insert(t);
+    for (Tensor* input: t->grad_fn->inputs)
+    {
+        topo_sort(input, visited, order);
+    }
+}
 void Tensor::backward()
 {
 
@@ -229,3 +239,6 @@ Tensor relu(Tensor& x)
     }
     return result;
 }
+
+//Softmax
+
