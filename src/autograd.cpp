@@ -37,7 +37,23 @@ static void topo_sort(Tensor* t, unordered_set<Tensor*>& visited, vector<Tensor*
 }
 void Tensor::backward()
 {
+    // 1. Seed — gradient of output w.r.t. itself is 1
+    if (!grad) {
+        grad = new Tensor(shape);
+        for (double& v : grad->data) v = 1.0;
+    }
 
+    // 2. Topo sort
+    unordered_set<Tensor*> visited;
+    vector<Tensor*> order;
+    topo_sort(this, visited, order);
+
+    // 3. Reverse walk
+    for (int i = (int)order.size() - 1; i >= 0; i--) {
+        Tensor* t = order[i];
+        if (t->grad_fn && t->grad)
+            t->grad_fn->backward(*t->grad);
+    }
 }
 
 void Tensor::zero_grad()
