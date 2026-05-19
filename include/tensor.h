@@ -52,6 +52,7 @@ public:
 
     // --- Math ops ---
     Tensor add(Tensor& n);
+    Tensor subtract(Tensor& n);
     Tensor add_int(double i);
     Tensor scale_int(double i);
     Tensor multiply(Tensor& b);
