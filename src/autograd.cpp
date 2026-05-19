@@ -71,6 +71,16 @@ void AddBackward::backward(Tensor& g)
     accum_grad(inputs[0], g);
     accum_grad(inputs[1], g);
 }
+void SubtractBackward::backward(Tensor& g)
+{
+    accum_grad(inputs[0], g);
+    Tensor neg_grad(g.shape);
+    for (int i = 0; i<(int)g.data.size(); i++)
+    {
+        neg_grad.data[i] = -g.data[i];
+    }
+    accum_grad(inputs[1], neg_grad);
+}
 
 void AddScalarBackward::backward(Tensor& g)
 {
