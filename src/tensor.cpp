@@ -204,6 +204,25 @@ Tensor Tensor::add(Tensor& n) {
     return result;
 }
 
+Tensor Tensor::subtract(Tensor& n)
+{
+    if (shape != n.shape)
+        throw invalid_argument("shapes are not compatible for subtract");
+    Tensor result(shape);
+    for (int i = 0; i < (int)result.data.size(); i++)
+        result.data[i] = data[i] - n.data[i];
+    //Build graph - attach GradFn
+    if (requires_grad || n.requires_grad)
+    {
+        result.requires_grad = true;
+        result.is_leaf = false;
+        auto* fn = new SubtractBackward();
+        fn->inputs = {this, &n};
+        result.grad_fn = fn;
+    }
+    return result;
+}
+
 Tensor Tensor::add_int(double i) {
     Tensor result;
     result.shape = shape;
