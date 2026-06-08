@@ -44,14 +44,14 @@ void Tensor::printRecursive(vector<double> data, vector<int> sh) {
 
 // ── Constructors ─────────────────────────────────────────────
 
-Tensor::Tensor(const initializer_list<int>& dims) {
+Tensor::Tensor(const initializer_list<int>& dims) { //Initialize a tensor with given shape, auto filled with 0.0 - for initializer input
     shape = dims;
-    int total = 1;
+    int total = 1; //because total is instance, so it doesn't need to be removed after used
     for (int d : shape) total *= d;
     data.assign(total, 0.0);
 }
 
-Tensor::Tensor(const vector<int>& dims) {
+Tensor::Tensor(const vector<int>& dims) { //Initialize a tensor with given shape, auto filled with 0.0 - for vector input
     shape = dims;
     int total = 1;
     for (int d : shape) total *= d;
@@ -60,14 +60,14 @@ Tensor::Tensor(const vector<int>& dims) {
 
 // ── Factory methods ──────────────────────────────────────────
 
-Tensor Tensor::zeros(initializer_list<int> dims) {
+Tensor Tensor::zeros(const initializer_list<int>& dims) {
     Tensor t;
     t.shape = dims;
     t.data.assign(t.numel(), 0.0);
     return t;
 }
 
-Tensor Tensor::ones(initializer_list<int> dims) {
+Tensor Tensor::ones(const initializer_list<int>& dims) {
     Tensor t;
     t.shape = dims;
     t.data.assign(t.numel(), 1.0);
@@ -86,7 +86,7 @@ Tensor Tensor::zeros(const vector<int>& dims) {
     return t;
 }
 
-Tensor Tensor::custom(initializer_list<int> dims, double val) {
+Tensor Tensor::custom(const initializer_list<int>& dims, double val) {
     Tensor t;
     t.shape = dims;
     t.data.assign(t.numel(), val);
@@ -99,11 +99,11 @@ Tensor Tensor::custom(const vector<int>& dims, double val) {
     return t;
 }
 
-Tensor Tensor::form(initializer_list<int> dims, vector<double> d) {
+Tensor Tensor::form(const initializer_list<int>& dims, vector<double> d) {
     Tensor t = Tensor::zeros(dims);
     if (d.size() != t.data.size())
         throw invalid_argument("data size is not compatible");
-    t.data = d;
+    t.data = d; //copy data into tensor
     return t;
 }
 
