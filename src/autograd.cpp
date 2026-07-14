@@ -34,6 +34,7 @@ static void topo_sort(Tensor* t, unordered_set<Tensor*>& visited, vector<Tensor*
     {
         topo_sort(input, visited, order);
     }
+    order.push_back(t)
 }
 void Tensor::backward()
 {
