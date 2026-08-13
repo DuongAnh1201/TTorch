@@ -27,13 +27,13 @@ public:
     Tensor(const std::vector<int>& dims);
 
     // --- Factory methods ---
-    static Tensor zeros(std::initializer_list<int> dims);
+    static Tensor zeros(const std::initializer_list<int>& dims);
     static Tensor zeros(const std::vector<int>& dims);
-    static Tensor ones(std::initializer_list<int> dims);
+    static Tensor ones(const std::initializer_list<int>& dims);
     static Tensor ones(const std::vector<int>& dims);
-    static Tensor custom(std::initializer_list<int> dims, double val);
+    static Tensor custom(const std::initializer_list<int>& dims, double val);
     static Tensor custom(const std::vector<int>& dims, double val);
-    static Tensor form(std::initializer_list<int> dims, std::vector<double> data);
+    static Tensor form(const std::initializer_list<int>& dims, std::vector<double> data);
     static Tensor form(const std::vector<int>& dims, std::vector<double> data);
 
     // --- Utilities ---
@@ -52,6 +52,7 @@ public:
 
     // --- Math ops ---
     Tensor add(Tensor& n);
+    Tensor subtract(Tensor& n);
     Tensor add_int(double i);
     Tensor scale_int(double i);
     Tensor multiply(Tensor& b);

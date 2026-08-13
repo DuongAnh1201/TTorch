@@ -3,6 +3,7 @@
 #include "tensor.h"
 #include "autograd.h"
 #include<cmath>
+#include<unordered_set>
 
 using namespace std;
 
@@ -25,9 +26,35 @@ static void accum_grad(Tensor* t, const Tensor& g)
     }
 }
 
+static void topo_sort(Tensor* t, unordered_set<Tensor*>& visited, vector<Tensor*>& order)
+{
+    if(visited.count(t) || t->grad_fn == nullptr){ return;}
+    visited.insert(t);
+    for (Tensor* input: t->grad_fn->inputs)
+    {
+        topo_sort(input, visited, order);
+    }
+    order.push_back(t)
+}
 void Tensor::backward()
 {
+    // 1. Seed — gradient of output w.r.t. itself is 1
+    if (!grad) {
+        grad = new Tensor(shape);
+        for (double& v : grad->data) v = 1.0;
+    }
 
+    // 2. Topo sort
+    unordered_set<Tensor*> visited;
+    vector<Tensor*> order;
+    topo_sort(this, visited, order);
+
+    // 3. Reverse walk
+    for (int i = (int)order.size() - 1; i >= 0; i--) {
+        Tensor* t = order[i];
+        if (t->grad_fn && t->grad)
+            t->grad_fn->backward(*t->grad);
+    }
 }
 
 void Tensor::zero_grad()
@@ -44,6 +71,16 @@ void AddBackward::backward(Tensor& g)
 {
     accum_grad(inputs[0], g);
     accum_grad(inputs[1], g);
+}
+void SubtractBackward::backward(Tensor& g)
+{
+    accum_grad(inputs[0], g);
+    Tensor neg_grad(g.shape);
+    for (int i = 0; i<(int)g.data.size(); i++)
+    {
+        neg_grad.data[i] = -g.data[i];
+    }
+    accum_grad(inputs[1], neg_grad);
 }
 
 void AddScalarBackward::backward(Tensor& g)
@@ -229,3 +266,6 @@ Tensor relu(Tensor& x)
     }
     return result;
 }
+
+//Softmax
+
