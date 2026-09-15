@@ -18,6 +18,11 @@ struct AddBackward : GradFn {
     void backward(Tensor& grad) override;
 };
 
+//subtract(a, b) → grad flows to a unchanged, grad flows to b negated
+struct SubtractBackward : GradFn {
+    void backward(Tensor& grad) override;
+};
+
 // add_int(a, scalar) → grad flows to a unchanged
 struct AddScalarBackward : GradFn {
     void backward(Tensor& grad) override;
