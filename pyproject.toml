@@ -31,3 +31,15 @@ wheel.packages = ["ttorch"]
 
 [tool.scikit-build.cmake.define]
 CMAKE_BUILD_TYPE = "Release"
+
+[tool.cibuildwheel]
+build = "cp311-* cp312-* cp313-*"
+skip = "pp* *-musllinux_*"
+build-verbosity = 1
+
+[tool.cibuildwheel.macos]
+archs = "arm64 x86_64"
+environment = { MACOSX_DEPLOYMENT_TARGET = "12.0" }
+
+[tool.cibuildwheel.linux]
+archs = "x86_64"
