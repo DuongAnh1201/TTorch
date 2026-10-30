@@ -70,3 +70,4 @@ venv/
 .vscode/
 .idea/
 *.swp
+*.cache
