@@ -5,7 +5,7 @@ on:
     branches: [main]
 concurrency:
   group: ci-${{ github.ref }}
-  cancel_in_progress: true
+  cancel-in-progress: true
 
 jobs:
   build-test:
