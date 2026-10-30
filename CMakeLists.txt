@@ -4,7 +4,7 @@ project(ttorch LANGUAGES CXX)
 # ---- C++ standard ----
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
+set(PYBIND11_FINDPYTHON ON)
 # ---- Find pybind11 ----
 find_package(pybind11 REQUIRED)
 
