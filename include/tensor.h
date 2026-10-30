@@ -26,7 +26,7 @@ public:
     std::shared_ptr<TensorImpl> impl;
 
     // --- Constructors ---
-    Tensor() = default;
+    Tensor();
     Tensor(const std::initializer_list<int>& dims);
     Tensor(const std::vector<int>& dims);
 
