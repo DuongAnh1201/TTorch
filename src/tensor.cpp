@@ -3,6 +3,11 @@
 #include <iostream>
 using namespace std;
 
+// --- Constructor ---
+Tensor::Tensor() : impl(std::make_shared<TensorImpl>()) {}
+Tensor::Tensor(const std::initializer_list<int>& dims) : impl(std::make_shared<TensorImpl>()) {}
+Tensor::Tensor(const std::vector<int>& dims) : impl(std::make_shared<TensorImpl>()) {};
+
 // ── Private helpers ──────────────────────────────────────────
 
 int Tensor::numel() {
