@@ -9,7 +9,7 @@ concurrency:
 
 jobs:
   build-test:
-    runs-in: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy: 
       fail-fast: false
       matrix: 
