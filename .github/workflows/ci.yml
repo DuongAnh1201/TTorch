@@ -1,0 +1,27 @@
+name: CI 
+on: 
+  pull_request:
+  push:
+    branches: [main]
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel_in_progress: true
+
+jobs:
+  build-test:
+    runs-in: ${{ matrix.os }}
+    strategy: 
+      fail-fast: false
+      matrix: 
+        os: [ubuntu-latest, macos-14, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install .
+      - name: Smoke test
+        run: >
+          python -c "import ttorch;
+          a=ttorch.Tensor.form([2],[1.0,2.0]); a.requires_grad=True;
+          y=ttorch.relu(a); y.backward();
+          assert a.grad.data==[1.0,1.0]; print('ok')"
