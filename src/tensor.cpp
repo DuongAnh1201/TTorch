@@ -2,18 +2,17 @@
 #include "autograd.h"
 #include <iostream>
 using namespace std;
-
 // --- Constructor ---
 Tensor::Tensor() : impl(std::make_shared<TensorImpl>()) {}
 Tensor::Tensor(const std::initializer_list<int>& dims) : impl(std::make_shared<TensorImpl>()) {
-    impl-> shape = dims;
+    impl->shape = dims;
 
     int n = 1;
     for (int d: dims) n*= d;
     impl -> data.assign(n, 0.0);
 }
 Tensor::Tensor(const std::vector<int>& dims) : impl(std::make_shared<TensorImpl>()) {
-    impl-> shape = dims;
+    impl->shape = dims;
     int n = 1;
     for (int d: dims) n*=d;
     impl -> data.assign(n, 0.0);
@@ -28,16 +27,16 @@ int Tensor::numel() {
 }
 
 int Tensor::ndim() {
-    return shape.size();
+    return impl->shape.size();
 }
 
 int Tensor::size(int dim) {
     if (dim >= ndim())
         throw invalid_argument("out of index");
-    return shape[dim];
+    return impl->shape[dim];
 }
 
-void Tensor::printRecursive(vector<double> data, vector<int> sh) {
+void Tensor::printRecursive(vector<double> data, vector<int> sh) { //sh: shape
     if (sh.size() == 1) {
         cout << "[";
         for (int i = 0; i < sh[0]; i++) {
@@ -58,76 +57,60 @@ void Tensor::printRecursive(vector<double> data, vector<int> sh) {
     }
 }
 
-// ── Constructors ─────────────────────────────────────────────
-
-Tensor::Tensor(const initializer_list<int>& dims) { //Initialize a tensor with given shape, auto filled with 0.0 - for initializer input
-    shape = dims;
-    int total = 1; //because total is instance, so it doesn't need to be removed after used
-    for (int d : shape) total *= d;
-    data.assign(total, 0.0);
-}
-
-Tensor::Tensor(const vector<int>& dims) { //Initialize a tensor with given shape, auto filled with 0.0 - for vector input
-    shape = dims;
-    int total = 1;
-    for (int d : shape) total *= d;
-    data.assign(total, 0.0);
-}
-
 // ── Factory methods ──────────────────────────────────────────
 
 Tensor Tensor::zeros(const initializer_list<int>& dims) {
     Tensor t;
-    t.shape = dims;
-    t.data.assign(t.numel(), 0.0);
+    t.impl->shape = dims;
+    t.impl->data.assign(t.numel(), 0.0);
     return t;
 }
 
 Tensor Tensor::ones(const initializer_list<int>& dims) {
     Tensor t;
-    t.shape = dims;
-    t.data.assign(t.numel(), 1.0);
+    t.impl->shape = dims;
+    t.impl->data.assign(t.numel(), 1.0);
     return t;
 }
 
 Tensor Tensor::ones(const vector<int>& dims) {
     Tensor t(dims);
-    t.data.assign(t.numel(), 1.0);
+    t.impl->data.assign(t.numel(), 1.0);
     return t;
 }
 
 Tensor Tensor::zeros(const vector<int>& dims) {
     Tensor t(dims);
-    t.data.assign(t.numel(), 0.0);
+    t.impl->data.assign(t.numel(), 0.0);
     return t;
 }
 
 Tensor Tensor::custom(const initializer_list<int>& dims, double val) {
     Tensor t;
-    t.shape = dims;
-    t.data.assign(t.numel(), val);
+    t.impl->shape = dims;
+    t.impl->data.assign(t.numel(), val);
     return t;
 }
 
 Tensor Tensor::custom(const vector<int>& dims, double val) {
     Tensor t(dims);
-    t.data.assign(t.numel(), val);
+    t.impl->data.assign(t.numel(), val);
     return t;
 }
 
 Tensor Tensor::form(const initializer_list<int>& dims, vector<double> d) {
     Tensor t = Tensor::zeros(dims);
-    if (d.size() != t.data.size())
+    if (d.size() != t.impl->data.size())
         throw invalid_argument("data size is not compatible");
-    t.data = d; //copy data into tensor
+    t.impl->data = d; //copy data into tensor
     return t;
 }
 
 Tensor Tensor::form(const vector<int>& dims, vector<double> d) {
     Tensor t(dims);
-    if (d.size() != t.data.size())
+    if (d.size() != t.impl->data.size())
         throw invalid_argument("data size is not compatible");
-    t.data = d;
+    t.impl->data = d;
     return t;
 }
 
