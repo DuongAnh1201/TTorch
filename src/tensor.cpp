@@ -5,14 +5,25 @@ using namespace std;
 
 // --- Constructor ---
 Tensor::Tensor() : impl(std::make_shared<TensorImpl>()) {}
-Tensor::Tensor(const std::initializer_list<int>& dims) : impl(std::make_shared<TensorImpl>()) {}
-Tensor::Tensor(const std::vector<int>& dims) : impl(std::make_shared<TensorImpl>()) {};
+Tensor::Tensor(const std::initializer_list<int>& dims) : impl(std::make_shared<TensorImpl>()) {
+    impl-> shape = dims;
+
+    int n = 1;
+    for (int d: dims) n*= d;
+    impl -> data.assign(n, 0.0);
+}
+Tensor::Tensor(const std::vector<int>& dims) : impl(std::make_shared<TensorImpl>()) {
+    impl-> shape = dims;
+    int n = 1;
+    for (int d: dims) n*=d;
+    impl -> data.assign(n, 0.0);
+};
 
 // ── Private helpers ──────────────────────────────────────────
 
 int Tensor::numel() {
     int total = 1;
-    for (int d : shape) total *= d;
+    for (int d : impl -> shape) total *= d;
     return total;
 }
 
