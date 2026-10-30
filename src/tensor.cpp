@@ -4,14 +4,14 @@
 using namespace std;
 // --- Constructor ---
 Tensor::Tensor() : impl(std::make_shared<TensorImpl>()) {}
-Tensor::Tensor(const std::initializer_list<int>& dims) : impl(std::make_shared<TensorImpl>()) {
+Tensor::Tensor(const std::initializer_list<int>& dims) : impl (std::make_shared<TensorImpl>()) {
     impl->shape = dims;
 
     int n = 1;
     for (int d: dims) n*= d;
     impl -> data.assign(n, 0.0);
 }
-Tensor::Tensor(const std::vector<int>& dims) : impl(std::make_shared<TensorImpl>()) {
+Tensor::Tensor(const std::vector<int>& dims) : impl (std::make_shared<TensorImpl>()) {
     impl->shape = dims;
     int n = 1;
     for (int d: dims) n*=d;
@@ -117,28 +117,28 @@ Tensor Tensor::form(const vector<int>& dims, vector<double> d) {
 // ── Utilities ────────────────────────────────────────────────
 
 void Tensor::print() {
-    printRecursive(data, shape);
+    printRecursive(impl->data, impl->shape);
     cout << endl;
 }
 
 vector<int> Tensor::dims() {
-    return shape;
+    return impl->shape;
 }
 
 vector<double> Tensor::value(vector<double> a) {
-    if (a.size() != data.size())
+    if (a.size() != impl->data.size())
         throw invalid_argument("size of argument is not compatible");
-    for (int i = 0; i < (int)data.size(); i++)
-        data[i] = a[i];
-    return data;
+    for (int i = 0; i < (int)impl->data.size(); i++)
+        impl->data[i] = a[i];
+    return impl->data;
 }
 
 double Tensor::at(vector<int> index) {
-    if (index.size() != shape.size())
+    if (index.size() != impl->shape.size())
         throw invalid_argument("index is not compatible with tensor");
     if (index.size() == 1)
-        return data[index[0]];
-    return data[index[0] * shape[1] + index[1]];
+        return impl->data[index[0]];
+    return impl->data[index[0] * impl->shape[1] + index[1]];
 }
 
 vector<double> Tensor::slice(vector<double>& v, int start, int end) {
@@ -150,7 +150,7 @@ vector<double> Tensor::slice(vector<double>& v, int start, int end) {
 Tensor Tensor::reshape(vector<int> newshape) {
     int total = 1;
     for (int d : newshape) total *= d;
-    if (total != (int)data.size())
+    if (total != (int)impl->data.size())
         throw invalid_argument("invalid reshape");
     Tensor t(newshape);
     t.data = data;
