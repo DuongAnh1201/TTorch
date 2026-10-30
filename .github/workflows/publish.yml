@@ -59,6 +59,7 @@ jobs:
     name: Publish to PyPI
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
+    environment: production 
     permissions:
       id-token: write
 
