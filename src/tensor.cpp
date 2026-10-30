@@ -153,32 +153,32 @@ Tensor Tensor::reshape(vector<int> newshape) {
     if (total != (int)impl->data.size())
         throw invalid_argument("invalid reshape");
     Tensor t(newshape);
-    t.data = data;
+    t.impl->data = impl->data;
     return t;
 }
 
 Tensor Tensor::view(vector<int> newshape) {
     int total = 1;
     for (int d : newshape) total *= d;
-    if ((int)data.size() != total)
+    if ((int)impl->data.size() != total)
         throw invalid_argument("invalid view");
     return reshape(newshape);
 }
 
 Tensor Tensor::flatten() {
     int total = 1;
-    vector<int> original = shape;
-    for (int d : shape) total *= d;
+    vector<int> original = impl->shape;
+    for (int d : impl->shape) total *= d;
     Tensor result({total});
-    result.data = data;
-    if (requires_grad)
+    result.impl->data = impl->data;
+    if (impl->requires_grad)
     {
-        result.requires_grad = true;
-        result.is_leaf = false;
-        auto* fn = new FlattenBackward();
+        result.impl->requires_grad = true;
+        result.impl->is_leaf = false;
+        auto fn = std::make_shared<FlattenBackward>();
         fn->original_shape = original;
-        fn->inputs = {this};
-        result.grad_fn = fn;
+        fn->inputs = {this->impl};
+        result.impl->grad_fn = fn;
     }
     return result;
 }
