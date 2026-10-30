@@ -6,8 +6,8 @@
 // Every op (add, dot, etc.) creates one of these and attaches
 // it to the output tensor as output.grad_fn
 struct GradFn {
-    std::vector<Tensor*> inputs; // tensors that were used in the forward pass
-    virtual void backward(Tensor& grad) = 0;
+    std::vector<std::shared_ptr<TensorImpl>> inputs; // tensors that were used in the forward pass
+    virtual void backward(TensorImpl& grad) = 0;
     virtual ~GradFn() = default;
 };
 

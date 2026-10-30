@@ -1,9 +1,20 @@
 #pragma once
+#include <memory>
 #include <vector>
 #include <iostream>
 #include <stdexcept>
 
 struct GradFn; // forward declare so Tensor can hold a pointer to it
+
+struct TensorImpl{
+    std::vector<int> shape;
+    std::vector<double> data;
+
+    bool requires_grad = false;
+    bool is_leaf = true;
+    std::shared_ptr<TensorImpl> grad; //Gradient is also a TensorImpl
+    std::shared_ptr<GradFn> grad_fn; //The node that produced this tensor
+};
 
 class Tensor {
 private:
@@ -11,15 +22,8 @@ private:
     void printRecursive(std::vector<double> data, std::vector<int> sh);
 
 public:
-    // --- Core data ---
-    std::vector<int>    shape;
-    std::vector<double> data;
-
-    // --- Autograd fields (set by autograd, not tensor logic) ---
-    bool     requires_grad = false;
-    Tensor*  grad          = nullptr;
-    GradFn*  grad_fn       = nullptr;
-    bool     is_leaf       = true;
+    // --- Core data now is saved in TensorImpl---
+    std::shared_ptr<TensorImpl> impl;
 
     // --- Constructors ---
     Tensor() = default;
